@@ -1,0 +1,78 @@
+# BlackPages local development stack
+# Usage:  cp .env.example .env && docker compose up -d
+# The Spring Boot backend (:8080) and the Next.js dev server (:3000) run on the host, from the IDE or npm.
+name: blackpages-local
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION}
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HOSTNAME: http://localhost:8081   # must match the issuer URL the backend uses
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      # Values substituted into the imported realm file
+      BFF_CLIENT_SECRET: ${KEYCLOAK_BFF_CLIENT_SECRET}
+      ADMIN_API_CLIENT_SECRET: ${KEYCLOAK_ADMIN_API_CLIENT_SECRET}
+      APP_BASE_URL: ${APP_BASE_URL}
+      BACKCHANNEL_LOGOUT_URL: ${BACKCHANNEL_LOGOUT_URL}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_FROM: ${SMTP_FROM}
+    ports:
+      - "8081:8080"   # login pages, OIDC endpoints, admin console
+      - "9001:9000"   # management port: /health, /metrics
+    volumes:
+      - ../keycloak/realm:/opt/keycloak/data/import:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # lets back-channel logout reach the backend on the host
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    healthcheck:
+      # The Keycloak image has no curl, so this uses bash's /dev/tcp instead.
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  mailpit:
+    image: axllent/mailpit:latest   # pin a version in the infra repo
+    ports:
+      - "8025:8025"   # web UI
+      - "1025:1025"   # SMTP, used by the app and Keycloak
+
+  stripe-mock:
+    image: stripe/stripe-mock:latest   # pin a version in the infra repo
+    ports:
+      - "12111:12111"
+
+volumes:
+  pgdata: {}
