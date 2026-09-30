@@ -1,7 +1,7 @@
 # Identity and Access Design
 
 - **Status:** Accepted
-- **Version:** 2.0
+- **Version:** 2.2 (2026-09-30: Spring Boot 4.1, Spring Security 7, and Java 25 per ADR-0018. Earlier in v2.1: one user per business account.)
 - **Date:** 2026-09-27
 - **Decisions:** ADR-0005 (Keycloak), ADR-0006 (sessions), ADR-0007 (authorization), ADR-0016 (Keycloak deployment)
 - **Replaces:** Version 1 (local authentication with Spring Security) and the Keycloak migration plan (the former epic E17, now cancelled)
@@ -19,8 +19,8 @@ BlackPages uses **Keycloak for authentication from day one**. The Spring Boot ba
 | Credentials (passwords are hashed with Argon2 by default) | The `app_user` profile, status, and onboarding state |
 | Login, registration, email verification, password reset | Platform roles: SHOPPER, BUSINESS, SITE_OPERATOR, ADMIN |
 | Brute-force protection and lockout | Operator location assignments |
-| OTP (TOTP) and, later, passkeys and social login | Business account memberships (OWNER, EDITOR) |
-| The SSO session and account console (password change, OTP devices, sessions) | Plan entitlements and every authorization decision |
+| OTP (TOTP) and, later, passkeys and social login | Business account ownership (exactly one OWNER per account in the MVP) |
+| The SSO session and account console (password change, OTP devices, sessions) | Entitlements (by listing tier and account type) and every authorization decision |
 | Login and admin event logs | Application sessions (Spring Session JDBC) |
 | The `staff` realm role, used **only** for MFA policy | User lifecycle decisions: suspend, delete, invite, grant staff role |
 
@@ -100,8 +100,8 @@ On `blackpages-bff`:
 | `user_identity` | user_id, provider (`keycloak`), subject (Keycloak's user ID), created_at. Provider and subject are unique together. | Links an application user to Keycloak. Also ready for identity brokering later. |
 | `user_role` | user_id, role | SHOPPER, BUSINESS, SITE_OPERATOR, ADMIN |
 | `operator_location` | user_id, location_id | |
-| `shopper_profile`, `business_account`, `business_account_member` | As in the Sprint 0 data model | |
-| `invitation` | id, kind (STAFF, BUSINESS_MEMBER), email, target_id, role, token_hash, expires_at, accepted_at, invited_by | Tracks the application side of invites |
+| `shopper_profile`, `business_account`, `business_account_member` | As in the Sprint 0 data model | In the MVP, `business_account_member` has **exactly one row per account, with role OWNER** (unique on `business_account_id`). The table is kept so more users can be added after the MVP. |
+| `invitation` | id, kind (STAFF; BUSINESS_MEMBER is added after the MVP), email, target_id, role, token_hash, expires_at, accepted_at, invited_by | Tracks the application side of invites |
 | `spring_session`, `spring_session_attributes` | The standard Spring Session schema | Managed by Flyway |
 
 **Removed from version 1 of this design:** `local_credential`, `local_mfa_totp`, `mfa_recovery_code`, `auth_token`, and `login_event`. Keycloak now covers all of them.
@@ -125,10 +125,10 @@ On `blackpages-bff`:
    - Copies `email` and `email_verified` from the claims.
 6. The backend creates the application session and redirects to `returnTo`. Next.js middleware sees `onboardingStatus = PENDING` from `/api/auth/me` and sends the user to `/onboarding`.
 7. **Onboarding** (screens in the application, calling the `/api/onboarding/*` endpoints):
-   - The user chooses shopper or business, a home location, and a plan.
-   - For a business, the user enters business account details.
+   - The user chooses the account type (shopper or business) and a home location.
+   - For a business, the user enters business account details, and the account's **default Silver listing** is created (SPEC-BILL-01, BR-PE-05).
    - This creates `shopper_profile`, or `business_account` with an OWNER membership, and grants the matching role.
-   - The flow hands off to billing (E7) where the plan needs payment.
+   - The flow hands off to billing (E7) to collect the card and the first invoice (the $1 service fee, plus the default listing's tier price or the shopper account price).
    - Finally, `onboarding_status` becomes COMPLETE.
 
 **Rules:**
@@ -171,11 +171,9 @@ On `blackpages-bff`:
 3. The application creates `app_user` and `user_identity` straight away, and grants the role and locations. The status stays ACTIVE, but staff permissions stay inactive until the MFA check in 5.4 passes.
 4. On the staff member's first login, the invitation is marked accepted.
 
-### 5.6 Business team invite (story 2.7)
-- This is handled entirely by the application. The owner invites an email address, and the application sends its own invite link with a single-use token.
-- If the invitee is logged in, accepting the link adds the membership.
-- If not, the link starts `/api/auth/register` or `/api/auth/login` with `returnTo=/invites/accept?token=…`.
-- Invitees are not created in Keycloak in advance.
+### 5.6 Business team invites (after the MVP)
+- **In the MVP, each business account has exactly one user, its owner.** There's no way to invite other people to a business account, and there's no EDITOR role.
+- Team invites and an editor role are planned after the MVP (backlog P.11). The `business_account_member` and `invitation` tables are designed so they can be added without a migration of existing data.
 
 ### 5.7 Password reset and password change
 - **Reset** happens on Keycloak's "Forgot password" page, and Keycloak sends the email. Keycloak's option to sign out other sessions after a reset triggers back-channel logout to the application.
@@ -207,10 +205,11 @@ On `blackpages-bff`:
 ## 6. Backend implementation
 
 ### 6.1 Dependencies
-- `spring-boot-starter-oauth2-client`
+- `spring-boot-starter-security-oauth2-client` (the Spring Boot 4 name)
 - `spring-boot-starter-security`
+- `spring-boot-starter-security-test`, for the `oidcLogin()` test support
 - `spring-session-jdbc`
-- `org.keycloak:keycloak-admin-client`, from the Keycloak client libraries line that supports the pinned server version
+- The **Keycloak Admin REST API is called with Spring's `RestClient`** inside `KeycloakUserProvisioningAdapter`, using client-credentials tokens for `blackpages-admin-api`. This keeps the backend on Jackson 3 (ADR-0018, decision 5).
 
 ### 6.2 Configuration (`application.yml`)
 ```yaml
@@ -287,7 +286,7 @@ SecurityFilterChain apiChain(HttpSecurity http,
 Notes:
 - `pkceAndPromptResolver` wraps `DefaultOAuth2AuthorizationRequestResolver` and uses `OAuth2AuthorizationRequestCustomizers.withPkce()`. It adds `prompt=create` for `/api/auth/register`, and `max_age=300` for re-authentication before sensitive actions.
 - `keycloakLogoutHandler` is an `OidcClientInitiatedLogoutSuccessHandler` with the post-logout redirect set to `{baseUrl}/`.
-- Follow the Spring Security guidance on CSRF for single-page apps when choosing the CSRF request handler, since the frontend reads the token from its cookie.
+- Follow the **Spring Security 7** guidance on CSRF for single-page apps when choosing the CSRF request handler, since the frontend reads the token from its cookie. Check the whole filter chain outline against the Spring Security 7 reference documentation in Sprint 1 (ADR-0018).
 - API calls without a session get **401**, not a redirect. The frontend handles the redirect to `/api/auth/login`.
 
 ### 6.4 Interfaces (in `io.blackpages.identity.api`)
@@ -309,7 +308,7 @@ public interface UserProvisioningPort {           // implemented by KeycloakUser
 }
 ```
 - No module outside `identity` imports Spring Security OAuth2 types or Keycloak types. An ArchUnit rule enforces this.
-- `KeycloakUserProvisioningAdapter` wraps the Admin API client with timeouts, retries, and a circuit breaker.
+- `KeycloakUserProvisioningAdapter` calls the Admin REST API through Spring `RestClient`, with timeouts, retries, and a circuit breaker.
 - **Changes that should happen in both systems use the outbox (ADR-0010).** The application writes its own change and an outbox event in one transaction, and a worker then calls Keycloak. This avoids half-finished changes when Keycloak isn't reachable.
 
 ---
@@ -331,7 +330,6 @@ The four layers are described in ADR-0007. Keycloak tokens are never used for au
 | `POST /api/onboarding/shopper`, `POST /api/onboarding/business` | JSON | Onboarding step 2 |
 | `POST /api/admin/staff/invites` | JSON | Admin only |
 | `POST /api/admin/users/{id}/suspend`, `.../reinstate`, `.../reset-mfa` | JSON | Admin, or operator within their scope |
-| `POST /api/business-accounts/{id}/invites`, `POST /api/invites/accept` | JSON | Business team invites |
 | `DELETE /api/account` | JSON | Requires re-authentication within the last 5 minutes |
 | `POST /logout/connect/back-channel/keycloak` | Called by Keycloak | Internal only; not in the public contract |
 

@@ -2,13 +2,17 @@
 
 This revision adopts **Keycloak from day one** and cancels the planned migration away from local authentication.
 
+**Start with [`HANDOFF.md`](HANDOFF.md)**, which has the context, decisions, open questions, and next steps.
+
 ## Contents
 
 | Path | What it is | Target repository |
 |---|---|---|
 | `docs/product/mvp.md` | MVP definition | `directory-app-infra/docs/product/` |
 | `docs/product/backlog.md` | Product backlog: epics, user stories, acceptance criteria, sprint plan | `directory-app-infra/docs/product/` |
-| `docs/adr/` | ADR-0001 to ADR-0016, with an index and status list | `directory-app-infra/docs/adr/` |
+| `docs/product/specs/SPEC-BILL-01-listing-tiers-and-entitlements.md` | Feature spec: account types, listing tiers, and entitlements (billing, part 1) | `directory-app-infra/docs/product/specs/` |
+| `docs/adr/` | ADR-0001 to ADR-0018, with an index and status list | `directory-app-infra/docs/adr/` |
+| `docs/architecture/system-overview.md` | **System architecture overview**: context, containers, 15 modules, data model, runtime flows, deployment, cross-cutting concepts, quality targets | `directory-app-infra/docs/architecture/` |
 | `docs/architecture/identity-and-access.md` | Full identity and access design: realm, flows, backend, frontend, testing, backlog impact | `directory-app-infra/docs/architecture/` |
 | `infra/local/docker-compose.yml` | Local stack: Postgres with PostGIS (databases for the app and Keycloak), Keycloak, Mailpit, stripe-mock | `directory-app-infra/local/` |
 | `infra/local/.env.example` | Local-only settings | `directory-app-infra/local/` |

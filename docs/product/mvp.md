@@ -2,33 +2,33 @@
 
 | | |
 |---|---|
-| **Document version** | 1.4 |
-| **Date** | 2026-09-27 |
-| **Status** | Draft for stakeholder review (v1.4: release plan aligned with Product Backlog v1.0) |
+| **Document version** | 1.9 |
+| **Date** | 2026-09-30 |
+| **Status** | Draft for stakeholder review (v1.9: two account types; Silver, Gold, and Platinum are listing tiers; the default Silver listing is charged and discounted like any other; only the owner changes tiers; one user per business account; shopper accounts have a price, discounts apply, and the $1 fee is additional; backend on Spring Boot 4.1 and Java 25) |
 | **Repositories** | `directory-app-svc` (backend), `directory-app-ui` (frontend), `directory-app-infra` (infrastructure) |
-| **Related documents** | ADR-0001 to ADR-0016, Identity and Access Design v2.0 (`directory-app-infra/docs/`) |
+| **Related documents** | ADR-0001 to ADR-0018, Identity and Access Design v2.2, SPEC-BILL-01 v0.5, Product Backlog v1.5 (`directory-app-infra/docs/`) |
 
 ---
 
 ## 1. Product overview
 
-BlackPages.io is a **business directory for multiple locations**. Businesses register a profile, list themselves by category, and pay for subscription plans that make them more visible. Shoppers register to review businesses and join the community. The public can search, browse, and view listings without an account.
+BlackPages.io is a **business directory for multiple locations**. Businesses open a **business account**, list themselves by category, and can add any number of listings. Each listing has a **tier** (Silver, Gold, or Platinum) that sets how visible it is and what it costs, and every business account starts with one Silver listing. Shoppers register to review businesses and join the community. The public can search, browse, and view listings without an account.
 
 The directory's point of difference is **credible reviews**. Reviews of a business stay hidden until a randomly selected **secret shopper** has reviewed that business.
 
 ### 1.1 MVP goals
 1. Launch a working, SEO-friendly directory in the initial launch location, **Arizona**, with the ability to expand to **50 locations**.
-2. Earn recurring revenue from paid subscriptions and the monthly service fee.
+2. Earn recurring revenue from listing tier prices, the shopper account price, and the monthly service fee.
 3. Establish trust through the secret shopper program and moderated reviews.
-4. Collect activity data from day one and show it back to subscribers as dashboards that depend on their plan.
+4. Collect activity data from day one and show it back to members as dashboards that depend on each listing's tier.
 
 ### 1.2 Success metrics (proposed, to be confirmed)
 
 | Metric | Target 90 days after launch in Arizona |
 |---|---|
 | Published business listings | 500 or more |
-| Share of businesses paying for their plan (more than the $1 service fee) after discounts | 15% or more |
-| Businesses that keep a paid plan after a free-plan introductory offer ends | 30% or more |
+| Share of business accounts with at least one Gold or Platinum listing | 15% or more |
+| Listings that stay on a paid tier after a free introductory offer ends | 30% or more |
 | Registered shoppers | 1,000 or more |
 | Searches that lead to a listing view | 40% or more |
 | Secret shopper assignments completed | 70% or more |
@@ -53,10 +53,10 @@ The directory's point of difference is **credible reviews**. Reviews of a busine
 | Role | Description | Key abilities |
 |---|---|---|
 | **Public visitor** | No account | Search, browse, view listings and unlocked reviews, contact businesses, see public charts |
-| **Shopper** | Registered individual on a paid plan | Everything a visitor can do, plus writing reviews, being picked as a secret shopper, and a basic dashboard |
-| **Business member** | Registered business account on the Silver, Gold, or Platinum plan | Manage listings and branches, reply to reviews and messages, see analytics for their plan. Roles within the account are OWNER and EDITOR. |
+| **Shopper** | Registered individual with a shopper account | Everything a visitor can do, plus writing reviews, being picked as a secret shopper, and a basic dashboard |
+| **Business owner** | The single user of a business account. The account starts with one Silver listing and can add any number of listings at any tier. | Manage listings, **upgrade or downgrade each one**, manage billing, reply to reviews and messages, see analytics for each listing. **Only the owner can change tiers**, and each business account has **exactly one user** for now. |
 | **Site operator** | Staff member | Read access to all locations. Write access (moderation, approvals, user management) only to the locations assigned to them. |
-| **Admin** | Staff member | Read and write access to all locations. Manages plans, taxonomy, locations, staff, and platform settings. |
+| **Admin** | Staff member | Read and write access to all locations. Manages listing tiers and pricing, taxonomy, locations, staff, and platform settings. |
 
 Staff accounts are created by invitation only and must use multi-factor authentication.
 
@@ -71,18 +71,18 @@ Staff accounts are created by invitation only and must use multi-factor authenti
 | Multi-location foundation | Up to 50 locations (states), each with cities. All data is scoped by location. | Must |
 | User accounts | Member accounts, dashboards, and permissions. Authentication through Keycloak. | Must |
 | Rich business profiles | Logo, cover image, gallery, description, hours, specialties, service area, and contact | Must |
-| Listing management | Create, edit, and publish listings, with an approval workflow and branch locations | Must |
+| Listing management | Create, edit, and publish any number of listings per business account, with an approval workflow | Must |
 | Categories | A three-level taxonomy: categories, subcategories, and specialties | Must |
 | Directory search | Keyword, category, and location search with filters. Results are ordered by tier, then alphabetically. | Must |
 | Maps and location | Google Maps view, address autocomplete with Places, and service areas | Must *(assumed)* |
 | SEO tools | Basic tools for the MVP: dynamic SEO pages, schema, metadata, and sitemaps | Must (basic) |
-| Membership plans | Silver, Gold, and Platinum plans, a shopper plan, add-on locations, and discounts of up to 100% | Must |
-| Payments | Recurring subscriptions through Stripe | Must |
+| Accounts and listing tiers | Business and shopper accounts, Silver, Gold, and Platinum listing tiers, a default Silver listing for every business account, per-listing upgrades and downgrades, and discounts of up to 100% on tier prices | Must |
+| Payments | Recurring monthly billing through Stripe, on one invoice per account | Must |
 | Reviews | Ratings and reviews on profiles, gated until a secret shopper has reviewed the business | Must |
 | Secret shopper program | Random monthly selection, assignments, and survey-based evaluations | Must |
 | Messaging | Visitors send messages to members, who reply through an email relay | Must |
 | Activity tracking | Every search, view, and click by users and the public is recorded | Must |
-| Data visualizations | Dashboards for subscribers that depend on their plan, an admin dashboard, and limited public charts | Must (subscriber and admin), Should (public) |
+| Data visualizations | Dashboards for each listing that depend on its tier, an admin dashboard, and limited public charts | Must (business and admin), Should (public) |
 | Administration | Search, filter, edit, and approve members. Moderation and audit. | Must |
 | Minimal home page | A search box, a location selector, and navigation | Must |
 
@@ -91,23 +91,33 @@ Staff accounts are created by invitation only and must use multi-factor authenti
 - Live chat. The MVP uses an email relay for messaging.
 - Advanced SEO tools: a content editor, a Search Console dashboard, SEO audits, FAQ schema, and "Best X in Y" editorial pages.
 - Metadata that members can edit themselves.
+- **Multiple users per business account** (team invites and an editor role). In the MVP each business account has exactly one user, its owner.
 - Admins viewing the site as a member (impersonation).
 - Native mobile apps.
 - Custom polygons for service areas. The MVP supports a list of cities or a radius.
-- Showing each subscriber tier a different set of visualizations through admin configuration.
+- Configuring which visualizations each listing tier gets through the admin UI.
 - Exporting data to a warehouse, and advanced analytics.
 
 ---
 
-## 4. Membership plans and pricing
+## 4. Accounts, listing tiers, and pricing
 
-### 4.1 Plan ladder
+The full rules are in **SPEC-BILL-01, Account Types, Listing Tiers, and Entitlements**. This section summarizes them.
 
-Each plan includes everything in the plan before it.
+### 4.1 Account types
 
-There is **no free plan**. Silver is the entry plan. A discount can bring a **plan's price** down to $0 for a period or indefinitely (section 4.3). **The $1 monthly service fee is always charged**, so every member pays at least $1 a month.
+There are **two account types**. There are no account plans.
 
-| Feature | Silver | Gold | Platinum |
+| Account type | Monthly charges | What's included |
+|---|---|---|
+| **Business** | $1 service fee, plus the tier price of **every** listing, including the default Silver listing | **One Silver listing is created by default** (the "default Silver listing"). The account can add **any number of listings**, each at the tier the owner chooses. |
+| **Shopper** | The shopper account price (to be set), less any discount, **plus** the $1 service fee | Writing reviews, secret shopper eligibility, message history, and a shopper dashboard |
+
+### 4.2 Listing tiers
+
+**Silver, Gold, and Platinum are tiers of an individual listing.** Each listing has exactly one tier, and a business can mix tiers, for example one Platinum listing and two Silver listings. Each tier includes everything in the tier below it.
+
+| Feature (per listing) | Silver | Gold | Platinum |
 |---|---|---|---|
 | Name, phone, category and subcategory, optional address | ✓ | ✓ | ✓ |
 | Listed in the directory and search | ✓ | ✓ | ✓ |
@@ -117,32 +127,32 @@ There is **no free plan**. Silver is the entry plan. A discount can bring a **pl
 | Receive visitor messages | ✓ | ✓ | ✓ |
 | Placement in category lists | Standard | **Above Silver** | **Above all other tiers** |
 | Website and social media links | — | — | ✓ |
-| Analytics dashboard | Basic: views and clicks | Adds trends and search terms | Adds category benchmarks and review and survey insights |
-| Add-on branch locations | Paid add-on | Paid add-on | Paid add-on |
+| Analytics for the listing | Basic: views and clicks | Adds trends and search terms | Adds category benchmarks and review and survey insights |
+| Monthly price | $ TBD (also charged for the default Silver listing) | $ TBD | $ TBD |
 
-### 4.2 Pricing rules
-- **Every plan price can be changed by an admin** without code changes, including the price, billing interval, and entitlements.
-- A **monthly service fee of $1** applies to businesses and shoppers **on top of** the plan price. **Discounts never apply to it.**
-- **All charges for an account go on one consolidated invoice:** the plan, add-on locations, and the service fee.
-- Upgrades take effect immediately and are prorated. Downgrades take effect at the end of the billing period.
-- Lapsed subscriptions get a 7-day grace period, after which the listing is hidden.
+### 4.3 Pricing rules
+- **Shopper accounts** are charged the **shopper account price** every month. Discounts apply to it the same way as to listing tier prices, and **the $1 service fee is charged in addition**.
+- **Tier prices, the shopper account price, and entitlements can be changed by an admin** without code changes. Existing listings keep their price when prices change.
+- A **monthly service fee of $1** applies to **every business and shopper account**, once per account however many listings it has. **Discounts never apply to it**, so every account pays at least $1 a month, and **a card is always required**.
+- **The default Silver listing** is an ordinary listing: it's **charged the Silver price**, **discounts apply to it the same way** as to any other Silver listing, and it can be upgraded, downgraded, or removed like any other (as long as the account keeps at least one listing).
+- **All charges for an account go on one consolidated invoice:** the service fee, plus one line per listing at its tier price.
+- **Upgrading and downgrading:** **only the account owner** can **upgrade or downgrade each listing**, including the default Silver listing. Upgrades take effect immediately, charging the prorated difference. Downgrades take effect at the end of the billing period and can be canceled until then. Other listings on the account aren't affected. Silver is the lowest tier.
+- **Lapsed accounts** get a 7-day grace period, after which **all of the account's listings** are hidden. Nothing is deleted.
 
-### 4.3 Discounts and plans discounted to $0
-Discounts replace a free plan as the way to attract members, for example an Arizona launch offer.
+### 4.4 Discounts and listings discounted to $0
+Discounts are the main way to attract members, for example an Arizona launch offer.
 
 | Rule | Detail |
 |---|---|
-| Plans | Discounts can apply to Silver, Gold, Platinum, and the shopper plan. |
+| What it applies to | **Listing tier prices** (optionally only certain tiers), **including the default Silver listing**, and the **shopper account price**. **It never applies to the $1 service fee.** |
 | Amount | A percentage **up to 100%**, or a fixed amount. A fixed discount can reduce a charge to $0 but never below it. |
 | Duration | Once, a set number of months, or forever. There can also be an expiry date after which new customers can't redeem it. |
-| What it covers | The plan price, and optionally add-on locations (the admin chooses for each discount). **It never covers the $1 service fee.** The smallest possible monthly total is therefore $1. |
-| How it's applied | Either a **code** entered at signup or checkout, or an **automatic campaign** that applies itself. Both can be limited by date window, location, plan, number of redemptions, and new customers only. |
-| Stacking | One discount per subscription. Discounts can't be combined. *(Assumption)* |
-| Display | When the plan price is discounted to $0, the pricing page and checkout show the plan as **"Free"** and state the service fee and the price afterwards, for example "Silver free for 3 months: you pay only the $1/month service fee, then $X/month". |
-| Status of discounted subscriptions | A subscription with its plan discounted to $0 is an ordinary **active subscription**. It has all the plan's entitlements and counts as active for reviews and secret shopper eligibility. Its monthly invoice is $1, for the service fee. |
-| Card collection | **A card is always required at signup**, because the $1 service fee is always charged. |
-| When a discount ends | Members get an email **7 days before the full plan price is first charged**, showing the new monthly total. |
-| Plan changes during a discount | The discount carries over only if it covers the new plan. Otherwise the new plan is billed at full price, prorated. *(Assumption)* |
+| How it's applied | Either a **code** entered at signup or checkout, or an **automatic campaign** that applies itself. Both can be limited by date window, location, tier, number of redemptions, and new customers only. |
+| Stacking | Each listing, and each shopper account price, can carry one discount at a time. Discounts can't be combined. *(Assumption)* |
+| Display | A tier discounted to $0 shows as **"Free"** with the price afterwards, for example "Gold listing free for 3 months, then $X/month". The $1 account service fee is always shown separately. |
+| Effect on features | A listing discounted to $0 has **all of its tier's features**. Discounts never change entitlements. |
+| When a discount ends | The owner is emailed **7 days before the full tier price is first charged**, showing the new monthly total. |
+| Tier changes during a discount | The discount carries over only if it covers the new tier. Otherwise the new tier is billed at full price, prorated. *(Assumption)* |
 
 ---
 
@@ -152,14 +162,14 @@ Discounts replace a free plan as the way to attract members, for example an Ariz
 Within any category, city, or specialty list, results are ordered **Platinum (A–Z), then Gold (A–Z), then Silver (A–Z)**. Tier ordering still applies when filters are used.
 
 ### 5.2 Reviews
-- Only registered shoppers and businesses with an **active subscription** can write reviews. That includes subscriptions whose plan is discounted to $0. The public can only read them.
+- Only registered shopper and business accounts **in good standing** (not lapsed or suspended) can write reviews. The public can only read them.
 - Each reviewer can leave **one review per business**, which they can edit. A business can't review itself.
 - **Reviews of a business are hidden from the public until at least one secret shopper review has been submitted for it.** Authors see their own hidden reviews marked "pending".
 - Reviews can be flagged, and operators moderate them. Businesses can reply publicly to reviews.
 
 ### 5.3 Secret shopper program
 - On the 1st of every month, **1 in 100 active businesses and 1 in 100 active shoppers are selected at random in each location**, with at least one of each when the pool isn't empty.
-- Only accounts with an active subscription are eligible, including those whose plan is discounted to $0. Anyone selected the previous month is excluded.
+- Only accounts in good standing are eligible. **A business account counts once**, however many listings it has *(proposed: see Q18)*. Anyone selected the previous month is excluded.
 - Each secret shopper is assigned businesses to evaluate. **They are never assigned their own business or a direct competitor in the same category.** Businesses without a secret shopper review yet are prioritized.
 - Assignments are confidential. The business never learns who evaluated it.
 - A secret shopper submits a review plus a structured survey. **Submitting it unlocks public reviews for that business.**
@@ -184,16 +194,16 @@ Within any category, city, or specialty list, results are ordered **Platinum (A�
 |---|---|---|
 | E1 | Multi-location foundation | Location and city management, location scoping, a location selector |
 | E2 | Identity and accounts | Keycloak authentication, registration and onboarding, staff invites with MFA, the member dashboard, business team roles |
-| E3 | Listing management and rich profiles | Listings, media, hours, branches, geocoding, the approval workflow, profile pages |
+| E3 | Listing management and rich profiles | Any number of listings per account, media, hours, geocoding, the approval workflow, profile pages |
 | E4 | Categories and browsing | A three-level taxonomy, the directory index, tier ordering, pagination |
 | E5 | Search and maps | Search that combines keyword, category, and city, filters, Google Maps, service areas, map cost controls |
 | E6 | SEO tools (basic) | Static and dynamic URLs, server-side rendering, metadata templates, schema.org markup, sitemaps, 301 redirects, protection against thin-content pages |
-| E7 | Subscriptions and pricing | Configurable plans, the entitlement engine, discounts up to 100% on plan prices (never the service fee), upgrades, add-on locations, the $1 fee |
+| E7 | Accounts, tiers, and pricing | Configurable listing tiers and account pricing, the default Silver listing, per-listing upgrades and downgrades, the entitlement engine, discounts up to 100% on tier prices (never the service fee), one invoice per account, the $1 fee |
 | E8 | Payments | Stripe Checkout or Elements, webhooks, dunning, refunds |
 | E9 | Reviews | Reviews, the unlock gate, ratings, moderation, business replies |
 | E10 | Secret shopper program | Selection, eligibility, assignment, notifications, evaluations, surveys, a program dashboard |
 | E11 | Activity tracking | An event taxonomy, asynchronous ingestion, cookie consent, bot filtering |
-| E12 | Data visualizations | Dashboards for subscribers by plan, the admin dashboard, public charts |
+| E12 | Data visualizations | Dashboards for each listing by tier, an account overview, the admin dashboard, public charts |
 | E13 | Home page and public UX | A minimal home page, responsive design, pricing and static pages |
 | E14 | Administration | Operator assignments, member management, bulk actions, audit log, email templates |
 | E15 | Non-functional requirements | Security, performance, accessibility, reliability, privacy |
@@ -238,7 +248,7 @@ The full backlog, with user stories and acceptance criteria, is maintained separ
 
 | Layer | Choice | ADR |
 |---|---|---|
-| Backend | Spring Boot 3.x on Java 21, as a modular monolith | 0001 |
+| Backend | **Spring Boot 4.1 on Java 25**, as a modular monolith | 0001, 0018 |
 | Frontend | Next.js (React), with route groups for public, member, and admin | 0002 |
 | Database | PostgreSQL 16 with PostGIS, Flyway migrations | 0003 |
 | Search | Postgres full-text search behind a SearchPort interface | 0004 |
@@ -271,7 +281,7 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 
 | Sprint | Theme | Main stories | Milestone |
 |---|---|---|---|
-| **0** | Foundation | 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 2.11, 2.16, 2.22 |  |
+| **0** | Foundation | 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 2.11, 2.16, 2.22 |  |
 | **1** | Locations and identity | 1.1, 1.3, 2.1, 2.3, 2.4, 2.12, 2.14, 2.15, 2.17, 2.18 |  |
 | **2** | Listings, taxonomy, and entitlements | 1.2, 1.5, 2.2, 2.17, 2.20, 3.1, 3.4, 3.5, 4.1, 4.6, 4.7, 7.10, 13.2 |  |
 | **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 |  |
@@ -281,13 +291,13 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6 |  |
 | **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5 |  |
 | **9** | Administration and analytics | 2.5, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8 |  |
-| **10** | Should-have items | 2.7, 2.21, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | Can move after the MVP (saves about 2 weeks) |
+| **10** | Should-have items | 2.21, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | Can move after the MVP (saves about 2 weeks) |
 | **11** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | **R3: public MVP launch in Arizona** |
 
 ### 10.1 Sequencing rationale
 - **Identity and the entitlement engine come first**, because profiles, messaging, analytics, and billing all depend on them.
 - **Tracking starts in Sprints 5–7**, so real data exists by the time dashboards are built in Sprint 9.
-- **Payments come before reviews and the secret shopper program**, because those features depend on active paid accounts.
+- **Payments come before reviews and the secret shopper program**, because those features depend on accounts in good standing.
 - **Service-area search comes after the base map**, because it reuses the geocoding and map components.
 
 ### 10.2 Definition of Done
@@ -306,20 +316,21 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 |---|---|
 | A1 | A location is a US state, and cities sit under it. Up to 50 locations can be active. The initial launch location is Arizona. |
 | A2 | City slugs are unique across all locations (for example, `springfield-mo`). |
-| A3 | Plans are cumulative, and the $1 service fee is charged on top of the plan price. |
-| A4 | Shoppers have one paid plan, made up of the $1 fee plus an optional plan price. |
-| A5 | Only registered users with an active subscription can write reviews, including subscriptions whose plan is discounted to $0. |
+| A3 | Listing tiers are cumulative (each includes everything in the tier below). The $1 service fee is charged once per account, on top of any tier prices. |
+| A4 | A shopper account is charged the shopper account price each month (discounts can apply), plus the $1 service fee. |
+| A5 | Only accounts in good standing can write reviews. |
 | A6 | One secret shopper review unlocks all approved reviews for that business. |
 | A7 | Secret shoppers are selected in each location every month (1%, with a minimum of 1). |
 | A8 | "Surveys" means the structured questionnaire a secret shopper completes. |
 | A9 | Admins and operators can both read every location. Operators write only to the locations assigned to them. |
 | A10 | Stripe is the card processor, using hosted card fields (PCI SAQ-A). |
-| A11 | **There's no free plan.** Silver is the entry plan. Discounts of up to 100% can bring a plan's price to $0 for a period or forever, but **never cover the $1 service fee**. Discounts don't stack. |
-| A12 | The plan ladder is Silver, Gold, then Platinum. All gated features are controlled by one entitlement matrix. |
+| A11 | **There are two account types, business and shopper, and no account plans.** Every business account starts with a default Silver listing, which is charged and discounted like any other Silver listing. Discounts of up to 100% can bring a tier price to $0, but **never cover the $1 service fee**. Discounts don't stack. |
+| A12 | **Silver, Gold, and Platinum are tiers of individual listings.** Each listing has its own tier. All gated features are controlled by one entitlement engine (SPEC-BILL-01). |
 | A13 | Specialties are tags under a subcategory. |
 | A14 | A service area is a list of cities or a radius. A business can hide its street address. |
 | A15 | Messaging works without an account and uses an email relay. |
-| A16–A18 | Dynamic SEO pages are indexed only when they have 3 or more listings. Schema markup reflects each listing's plan and settings. |
+| A16–A18 | Dynamic SEO pages are indexed only when they have 3 or more listings. Schema markup reflects each listing's tier and settings. |
+| A19 | **Each business account has exactly one user, its owner**, who is the only person who can change tiers, add or remove listings, and manage billing. |
 
 ---
 
@@ -327,13 +338,13 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 
 | # | Question | Affects |
 |---|---|---|
-| Q1 | When a plan is discounted to $0, the invoice is just the $1 fee, and standard card fees would take about a third of it. Should we accept that as the cost of acquiring members, or bill the service fee **annually ($12)** while the plan is discounted? | E7, E8 |
+| Q1 | Card fees on $1 invoices: an account pays only the $1 fee when **all of its listings**, or **its shopper account price**, are discounted to $0. Standard card fees take about a third of $1. Should we accept that as the cost of acquiring members, or bill the service fee **annually ($12)**? | E7, E8 |
 | Q2 | Is Maps and location a Must? It's currently assumed to be. | E5 |
 | Q3 | *Resolved:* discounts never cover the $1 service fee. A card is always required. | E7 |
 | Q4 | Is the email relay acceptable, or is live chat needed? Live chat would add 1–2 sprints. | E16 |
 | Q5 | Is a list of cities or a radius enough for service areas, or are custom polygons needed? | E5 |
-| Q6 | How many specialties and gallery photos should each plan allow? | E3, E4, E7 |
-| Q7 | Is business team access (story 2.7) needed at launch? | E2 |
+| Q6 | How many specialties and gallery photos should each listing tier allow? | E3, E4, E7 |
+| Q7 | *Resolved:* no team access at launch. Each business account has exactly one user, its owner. Multiple users come after the MVP (backlog P.11). | E2 |
 | Q8 | Should specialty URLs nest under the category or sit at the top level? Should the state appear in URLs? | E6 |
 | Q9 | Is 3 listings the right minimum for indexing a dynamic page? | E6 |
 | Q10 | What incentives do secret shoppers get, and how many businesses does each one evaluate? | E10 |
@@ -342,6 +353,10 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | Q13 | Confirm AWS, Stripe, and Postmark, and who owns each account. | ADR-0009, 0014, 0015 |
 | Q14 | Staff MFA: use the default conditional OTP flow with reconciliation, or a custom flow keyed on the `staff` role? | ADR-0005 |
 | Q15 | Confirm the list of Arizona cities to seed at launch, and whether the Navajo Nation's time zone needs handling for any city on it. | E1 |
+| Q16 | *Resolved:* the default Silver listing is charged the Silver price, and discounts apply to it like any other Silver listing. | E7 |
+| Q17 | *Resolved:* not applicable. The default listing is an ordinary paid listing, so an upgrade charges the prorated difference. | E7 |
+| Q19 | *Resolved:* only the business account owner can upgrade or downgrade listings. | E7 |
+| Q18 | Is the secret shopper pool 1 in 100 **business accounts** (proposed, so businesses with many listings aren't favored) or 1 in 100 **listings** (the original brief's wording)? | E10 |
 
 ---
 
@@ -351,10 +366,10 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 |---|---|---|
 | Too few businesses and shoppers join in Arizona | Low engagement. Not enough members for random secret shopper selection. | Introductory discounts (up to 100% during the Arizona launch) to grow listings. Minimum selection of one. Launch marketing focused on the largest Arizona metros first. |
 | Reviews stay locked for a long time | Few reviews are visible, which reduces the value of the directory | Prioritize businesses without a secret shopper review. Monitor completion rates. Admins can reselect. |
-| Members leave when a $0 offer ends | Revenue falls short of forecasts | A card is always on file, because the service fee is always charged. Send a reminder 7 days before the full price is first charged. Always show the price after the discount. |
-| Card fees on small charges | When a plan is discounted to $0, the invoice is only $1, and standard card fees take about a third of it | Put the fee on the consolidated plan invoice whenever there is one. For discounted periods, decide Q1 (accept the cost, or bill the fee annually). |
+| Listings move down when a free offer ends | Revenue falls short of forecasts | A card is always on file, because the service fee is always charged. Send a reminder 7 days before the full price is first charged. Always show the price after the discount. |
+| Card fees on small charges | An account whose listings are all discounted to $0 (for example, a launch offer on the default Silver listing) pays only the $1 fee, and standard card fees take about a third of it | Decide Q1: accept the cost during offers, or bill the service fee annually ($12) |
 | Google Maps usage costs | Unexpected bills | Restricted API keys, loading maps only when needed, static maps in lists, usage alerts |
-| Thin-content SEO penalties | Pages rank poorly | Threshold for indexing dynamic pages, and schema markup that reflects the plan |
+| Thin-content SEO penalties | Pages rank poorly | Threshold for indexing dynamic pages, and schema markup that reflects each listing's tier |
 | Keycloak operations and upgrades | Security exposure if patches are missed | Pinned versions, configuration as code, a quarterly upgrade window, staging first, a login end-to-end suite |
 | Cost of the 95% coverage target | Slower delivery | Keep logic out of page files, test with builders and fakes, exclude only generated code and configuration |
 | Coordination between two teams | API integration delays | Contract-first spec pull requests, MSW mocks, versioned client packages |
@@ -375,6 +390,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 0.4 | Staging environment | M | 0 |
 | 0.5 | Analytics event taxonomy | M | 0 |
 | 0.6 | Identity spike | M | 0 |
+| 0.7 | Platform compatibility spike | M | 0 |
 | 1.1 | Create and manage locations | M | 1 |
 | 1.2 | Manage cities | M | 2 |
 | 1.3 | Scope data by location | M | 1 |
@@ -386,7 +402,6 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 2.4 | Role-based access control | M | 1 |
 | 2.5 | Profile updates and account deletion | S | 9 |
 | 2.6 | Member dashboard home | M | 7 |
-| 2.7 | Business team invites | S | 10 |
 | 2.8 | MFA required for staff | M | 3 |
 | 2.9 | Staff invites | M | 3 |
 | 2.11 | Password policy | M | 0 |
@@ -401,8 +416,8 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 2.21 | Hardened staff authentication flow | S | 10 |
 | 2.22 | Keycloak in AWS | M | 0 |
 | 3.1 | Create a listing | M | 2 |
-| 3.2 | Website and social links for Platinum | M | 6 |
-| 3.3 | Branch locations | M | 6 |
+| 3.2 | Website and social links for Platinum listings | M | 6 |
+| 3.3 | Add more listings | M | 6 |
 | 3.4 | Address entry and geocoding | M | 2 |
 | 3.5 | Edit, pause, and reactivate a listing | M | 2 |
 | 3.6 | Listing approval workflow | M | 3 |
@@ -432,19 +447,19 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 6.6 | Dynamic specialty pages | M | 4 |
 | 6.7 | Keep thin pages out of the index | M | 4 |
 | 6.8a | Core schema markup | M | 4 |
-| 6.8b | Schema for reviews, service area, and plan | M | 8 |
+| 6.8b | Schema for reviews, service area, and tier | M | 8 |
 | 6.9 | Metadata overrides | S | 10 |
 | 6.12 | Search Console setup | M | 11 |
-| 7.1 | Configure plans | M | 5 |
+| 7.1 | Configure listing tiers and account pricing | M | 5 |
 | 7.2 | Discount engine | M | 6 |
-| 7.3 | Choose a plan and pay at signup | M | 5 |
-| 7.4 | Upgrade and downgrade | M | 6 |
-| 7.5 | Consolidated billing for branches | M | 6 |
+| 7.3 | Sign up and pay | M | 5 |
+| 7.4 | Upgrade or downgrade a listing | M | 6 |
+| 7.5 | One invoice for all listings | M | 6 |
 | 7.6 | $1 monthly service fee | M | 5 |
-| 7.7 | Lapsed subscriptions | M | 6 |
+| 7.7 | Lapsed accounts | M | 6 |
 | 7.8 | Billing history and invoices | S | 10 |
 | 7.10 | Entitlement engine | M | 2 |
-| 7.11 | Plans discounted to $0 | M | 6 |
+| 7.11 | Listings discounted to $0 | M | 6 |
 | 7.12 | Promotions at checkout and on the pricing page | M | 6 |
 | 7.13 | Sales tax on subscriptions | TBD | TBD |
 | 8.1 | Card payments | M | 5 |
@@ -458,7 +473,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 9.5 | Business replies | S | 10 |
 | 10.1 | Monthly random selection | M | 8 |
 | 10.2 | Eligibility rules | S | 10 |
-| 10.3 | Assign businesses to secret shoppers | M | 8 |
+| 10.3 | Assign listings to secret shoppers | M | 8 |
 | 10.4 | Confidential notifications | M | 8 |
 | 10.5 | Submit an evaluation | M | 8 |
 | 10.6 | Survey configuration | S | 10 |
@@ -467,7 +482,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 11.2 | Event storage and aggregates | M | 7 |
 | 11.3 | Cookie consent | M | 6 |
 | 11.4 | Bot filtering | S | 11 |
-| 12.1 | Business dashboards by plan | M | 9 |
+| 12.1 | Business dashboards by listing tier | M | 9 |
 | 12.2 | Admin analytics dashboard | M | 9 |
 | 12.3 | Public charts | S | 10 |
 | 12.4 | Shopper dashboard | S | 10 |
@@ -491,7 +506,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 16.3 | Member inbox | M | 7 |
 | 16.4 | Replies through an email relay | M | 7 |
 | 16.5 | Shopper message history | S | 10 |
-| 16.6 | Messaging by plan | M | 7 |
+| 16.6 | Messaging by listing tier | M | 7 |
 | 16.7 | Report and block senders | S | 10 |
 | 16.8 | Message leads in analytics | M | 9 |
 
@@ -502,10 +517,12 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | Term | Meaning |
 |---|---|
 | **Location** | A US state that has its own directory |
-| **Listing** | A business's public entry. A business account can have several listings, one per branch. |
-| **Tier** | A business plan level: Silver, Gold, or Platinum |
-| **Discount** | A price reduction of up to 100% on a plan price, and optionally on add-on locations. It never applies to the $1 service fee. |
-| **Entitlement** | A feature or limit that a plan grants, such as the number of gallery photos |
+| **Account** | A member account: either **business** (owns listings) or **shopper** |
+| **Listing** | A business's public entry. A business account can have any number of listings, each with its own tier. |
+| **Default Silver listing** | The Silver listing created automatically with every new business account. It's charged, discounted, upgraded, and downgraded like any other listing. |
+| **Tier** | The level of an individual listing: Silver, Gold, or Platinum |
+| **Discount** | A price reduction of up to 100% on a listing's tier price or the shopper account price. It never applies to the $1 service fee. |
+| **Entitlement** | A feature or limit granted by a listing's tier or an account's type, such as the number of gallery photos |
 | **Secret shopper** | A randomly selected business or shopper who evaluates assigned businesses |
 | **Review unlock** | The moment when a business's reviews become public, triggered by its first secret shopper review |
 | **Service area** | The cities or radius a business serves, which may differ from its address |

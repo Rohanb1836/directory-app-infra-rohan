@@ -1,6 +1,6 @@
 # ADR-0005: Keycloak is the identity provider from day one
 
-- **Status:** Accepted
+- **Status:** Accepted (wording amended 2026-09-30 for account types and listing tiers, ADR-0017)
 - **Date:** 2026-09-27
 - **Supersedes:** The draft of ADR-05 from the Sprint 0 proposal, which had local authentication with Spring Security and a planned migration to Keycloak later
 - **Related:** ADR-0006 (sessions), ADR-0007 (authorization), ADR-0016 (Keycloak deployment), `docs/architecture/identity-and-access.md`
@@ -20,7 +20,7 @@ The team plans to standardize on Keycloak. An earlier draft built local authenti
 5. **One realm, `blackpages`, per environment**, with two clients:
    - `blackpages-bff` is a confidential client using the authorization code flow with PKCE. It's used for browser logins.
    - `blackpages-admin-api` is a service account restricted to `manage-users`, `view-users`, and `query-users`. The backend uses it to provision and disable users.
-6. **Registration has two steps.** Keycloak creates the account (email, password, email verification). After the first login, the application runs **onboarding**: choosing shopper or business, a home location, a plan, and profile details.
+6. **Registration has two steps.** Keycloak creates the account (email, password, email verification). After the first login, the application runs **onboarding**: choosing the account type (shopper or business), a home location, and profile details. A business account's default Silver listing is created at this point (ADR-0017).
 7. **The application's admin UI is the system of record for user lifecycle.** Suspending, reinstating, deleting, inviting staff, and granting staff roles all happen in our admin UI, which updates Keycloak through the Admin API. The Keycloak admin console is for operations work only.
 8. **Keycloak has exactly one realm role, `staff`.** It exists only so Keycloak's authentication policy can require MFA for staff. The application roles `ADMIN` and `SITE_OPERATOR` are stored in the application database.
 9. **Login pages are themed with Keycloakify.** The frontend team builds them in React using the BlackPages design system, and they're packaged as a theme JAR inside the Keycloak image.

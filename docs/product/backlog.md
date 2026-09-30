@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Version** | 1.0 |
-| **Date** | 2026-09-27 |
-| **Status** | Ready for sprint planning, subject to the open questions in section 7 |
-| **Companion documents** | MVP Definition v1.4 (`docs/product/mvp.md`), ADR-0001 to ADR-0016, Identity and Access Design v2.0 |
+| **Version** | 1.5 |
+| **Date** | 2026-09-30 |
+| **Status** | Ready for sprint planning, subject to the open questions in section 7. **v1.1:** Silver, Gold, and Platinum are now listing tiers, not account plans. **v1.2:** the default Silver listing is charged and discounted like any other listing, and owners can upgrade or downgrade every listing. **v1.3:** only the owner changes tiers, and each business account has one user. **v1.4:** shopper accounts always have a price, discounts apply to it, and the $1 fee is additional. **v1.5:** backend on Spring Boot 4.1 and Java 25 (ADR-0018), with a new compatibility spike (0.7). |
+| **Companion documents** | MVP Definition v1.9, SPEC-BILL-01 v0.5, ADR-0018 (`docs/product/mvp.md`), ADR-0001 to ADR-0016, Identity and Access Design v2.0 |
 | **Repositories** | `directory-app-svc` (backend), `directory-app-ui` (frontend), `directory-app-infra` (infrastructure) |
 
 ---
@@ -37,9 +37,9 @@
 
 | Epic | Name | Stories | Must pts | Should pts | Could/TBD pts | Total pts |
 |---|---|---|---|---|---|---|
-| [E0](#e0) | Foundation (Sprint 0) | 6 | 23 | 0 | 0 | 23 |
+| [E0](#e0) | Foundation (Sprint 0) | 7 | 26 | 0 | 0 | 26 |
 | [E1](#e1) | Multi-Location Foundation | 5 | 23 | 0 | 0 | 23 |
-| [E2](#e2) | Identity and Accounts | 20 | 69 | 11 | 0 | 80 |
+| [E2](#e2) | Identity and Accounts | 19 | 69 | 6 | 0 | 75 |
 | [E3](#e3) | Listing Management and Rich Profiles | 10 | 38 | 0 | 0 | 38 |
 | [E4](#e4) | Categories and Browsing | 7 | 23 | 0 | 0 | 23 |
 | [E5](#e5) | Search and Maps | 7 | 33 | 3 | 0 | 36 |
@@ -54,7 +54,7 @@
 | [E14](#e14) | Administration and Site Operations | 6 | 16 | 6 | 0 | 22 |
 | [E15](#e15) | Non-Functional Requirements | 5 | 17 | 0 | 0 | 17 |
 | [E16](#e16) | Messaging | 8 | 22 | 6 | 0 | 28 |
-| | **Total** | **125** | **423** | **64** | **5** | **492** |
+| | **Total** | **125** | **426** | **59** | **5** | **490** |
 
 ## 3. Sprint plan
 
@@ -62,7 +62,7 @@ Sprints are two weeks long. The plan runs about **24 weeks** from Sprint 0 to la
 
 | Sprint | Theme | Stories | Points | Milestone |
 |---|---|---|---|---|
-| **0** | Foundation | 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 2.11, 2.16, 2.22 | 34 |  |
+| **0** | Foundation | 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 2.11, 2.16, 2.22 | 37 |  |
 | **1** | Locations and identity | 1.1, 1.3, 2.1, 2.3, 2.4, 2.12, 2.14, 2.15, 2.17, 2.18 | 44 |  |
 | **2** | Listings, taxonomy, and entitlements | 1.2, 1.5, 2.2, 2.17, 2.20, 3.1, 3.4, 3.5, 4.1, 4.6, 4.7, 7.10, 13.2 | 45 |  |
 | **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 | 43 |  |
@@ -72,7 +72,7 @@ Sprints are two weeks long. The plan runs about **24 weeks** from Sprint 0 to la
 | **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6 | 42 |  |
 | **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5 | 38 |  |
 | **9** | Administration and analytics | 2.5, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8 | 39 |  |
-| **10** | Should-have items | 2.7, 2.21, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | 56 | Can move after the MVP (saves about 2 weeks) |
+| **10** | Should-have items | 2.21, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | 51 | Can move after the MVP (saves about 2 weeks) |
 | **11** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | 17 | **R3: public MVP launch in Arizona** |
 
 Story 2.17 (the Keycloak theme) spans Sprints 1 and 2, so its points are split between them. Story 7.13 (sales tax) isn't scheduled until Q12 is decided.
@@ -81,7 +81,7 @@ Story 2.17 (the Keycloak theme) spans Sprints 1 and 2, so its points are split b
 
 ### Sequencing rationale
 - **Identity and the entitlement engine come first**, because profiles, messaging, analytics, and billing all depend on them.
-- **Payments come before reviews and the secret shopper program**, because both require active subscriptions.
+- **Payments come before reviews and the secret shopper program**, because both require accounts in good standing.
 - **Tracking starts in Sprint 5**, and consent is live before the paid beta, so real data exists by the time dashboards are built in Sprint 9.
 - **Service-area search comes after the base map**, because it reuses geocoding and map components.
 
@@ -103,6 +103,7 @@ Story 2.17 (the Keycloak theme) spans Sprints 1 and 2, so its points are split b
 | 0.4 | Staging environment | M | 5 | 0 | infra |
 | 0.5 | Analytics event taxonomy | M | 2 | 0 | All |
 | 0.6 | Identity spike | M | 3 | 0 | svc |
+| 0.7 | Platform compatibility spike | M | 3 | 0 | svc |
 
 #### 0.1 Architecture decision records
 As the **delivery team**, I want the architecture decisions recorded and agreed so that both teams build on the same foundation.
@@ -118,7 +119,7 @@ As the **delivery team**, I want the architecture decisions recorded and agreed 
 As a **developer**, I want the three repositories scaffolded so that I can start on stories on day one.
 
 **Acceptance criteria**
-- `directory-app-svc` has the Spring Boot modular-monolith skeleton, `contract/openapi.yaml`, and Flyway migration V001.
+- `directory-app-svc` has the modular-monolith skeleton on **Spring Boot 4.1 and Java 25** (ADR-0018), using the Boot 4 modular starters, `contract/openapi.yaml`, and Flyway migration V001.
 - `directory-app-ui` has the Next.js app with the `(public)`, `(member)`, and `(admin)` route groups and the generated API client.
 - `directory-app-infra` has the local docker-compose stack, Terraform layout, and Keycloak image build.
 - Each repository's README explains how to run it locally in under 15 minutes.
@@ -131,6 +132,7 @@ As the **delivery team**, I want every pull request checked automatically so tha
 **Acceptance criteria**
 - Backend CI enforces JaCoCo line coverage of 95% or more and branch coverage of 90% or more, and PIT mutation score of 80% or more on critical modules.
 - Frontend CI enforces Vitest coverage of 95% or more on lines, statements, and functions, and 90% or more on branches.
+- Backend CI builds and tests on **JDK 25** (Temurin), and images use the Temurin 25 JRE for ARM64.
 - Both pipelines run CodeQL, dependency scanning, and the contract checks from ADR-0012.
 - Branch protection on `main` requires all checks to pass.
 
@@ -162,6 +164,18 @@ As the **tech lead**, I want the Keycloak details confirmed early so that identi
 - Confirmed on Keycloak 26.7.x: `prompt=create`, recovery codes, and environment-variable substitution during realm import.
 - Keycloakify compatibility with the pinned Keycloak version is confirmed.
 - Findings are recorded in section 13 of the identity design document.
+
+*Priority:* M · *Points:* 3 · *Sprint:* 0 · *Team:* svc
+
+#### 0.7 Platform compatibility spike
+As the **backend tech lead**, I want every library confirmed on Spring Boot 4.1 and Java 25 so that Sprint 1 isn't blocked by tooling problems.
+
+**Acceptance criteria**
+- Versions supporting **Java 25 bytecode and Spring Boot 4.1** are confirmed and pinned for JaCoCo, PIT, Mockito and Byte Buddy, ArchUnit, Spring Modulith, ShedLock, Bucket4j, openapi-generator (Spring generator, Jackson 3), `testcontainers-keycloak`, and the Stripe Java SDK.
+- A walking skeleton (one endpoint, one JPA entity, one Flyway migration, OIDC login against local Keycloak, and one event through the outbox) builds, passes the coverage gates, and runs with virtual threads enabled.
+- The Keycloak Admin REST API is called through Spring `RestClient` in a test against the Keycloak Testcontainer (ADR-0018, decision 5).
+- An ArchUnit rule blocks Jackson 2 (`com.fasterxml.jackson`) imports in our code.
+- Findings and pinned versions are recorded in ADR-0018 or the repository README.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 0 · *Team:* svc
 
@@ -248,7 +262,6 @@ As the **product owner**, I want Arizona set up as the first active location so 
 | 2.4 | Role-based access control | M | 8 | 1 | svc |
 | 2.5 | Profile updates and account deletion | S | 3 | 9 | svc, ui |
 | 2.6 | Member dashboard home | M | 5 | 7 | ui, svc |
-| 2.7 | Business team invites | S | 5 | 10 | svc, ui |
 | 2.8 | MFA required for staff | M | 3 | 3 | svc |
 | 2.9 | Staff invites | M | 3 | 3 | svc, ui |
 | 2.11 | Password policy | M | 1 | 0 | infra |
@@ -274,13 +287,14 @@ As a **visitor**, I want to create an account so that I can join BlackPages as a
 *Priority:* M · *Points:* 3 · *Sprint:* 1 · *Team:* svc, ui · *Depends on:* 0.6, 2.16
 
 #### 2.2 Onboarding for shoppers and businesses
-As a **new user**, I want to set up my shopper or business profile after registering so that I can start using BlackPages.
+As a **new user**, I want to set up my shopper or business account after registering so that I can start using BlackPages.
 
 **Acceptance criteria**
 - After first login, a user with `onboarding_status = PENDING` is sent to `/onboarding`.
-- The user chooses shopper or business, a home location, and a plan.
-- Businesses enter account details, and an OWNER membership is created.
-- Completing onboarding grants the SHOPPER or BUSINESS role and hands off to billing (7.3).
+- The user chooses the **account type** (business or shopper) and a home location.
+- **Business:** the user enters account details, an OWNER membership is created, and the account's **default Silver listing** is created as a draft. The owner can choose a higher tier for it straight away (SPEC-BILL-01, BR-PE-05).
+- **Shopper:** the shopper profile is created.
+- Completing onboarding grants the SHOPPER or BUSINESS role and hands off to payment (7.3).
 
 *Priority:* M · *Points:* 5 · *Sprint:* 2 · *Team:* svc, ui
 
@@ -303,6 +317,7 @@ As the **platform**, I want roles and permissions enforced so that each user can
 - Roles are SHOPPER, BUSINESS, SITE_OPERATOR, and ADMIN, stored in the application database.
 - Named permissions are enforced by the API with `@PreAuthorize`, not only hidden in the UI.
 - Resources outside a user's scope return 404 (ADR-0007).
+- **Each business account has exactly one user, its owner**, in the MVP. A second user can't be added to an account.
 
 *Priority:* M · *Points:* 8 · *Sprint:* 1 · *Team:* svc
 
@@ -320,18 +335,10 @@ As a **user**, I want to update my profile or delete my account so that I contro
 As a **member**, I want a dashboard home so that I can manage everything in one place.
 
 **Acceptance criteria**
-- Widgets show listings and their status, the plan and any active discount, billing, unread messages, recent reviews, and an analytics summary.
+- Business widgets show **every listing with its tier**, status, monthly price, any discount and scheduled tier change, with **Upgrade** and **Downgrade** actions for the owner, plus billing, unread messages, recent reviews, and an analytics overview.
+- Shopper widgets show reviews, secret shopper assignments, messages, and billing.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 7 · *Team:* ui, svc
-
-#### 2.7 Business team invites
-As a **business owner**, I want to invite staff with roles so that others can help manage my listing.
-
-**Acceptance criteria**
-- Roles are Owner (full access, including billing) and Editor (listings and messages only).
-- Invites are sent by email with a single-use link and handled by the application (identity design, section 5.6).
-
-*Priority:* S · *Points:* 5 · *Sprint:* 10 · *Team:* svc, ui · *Depends on:* Q7
 
 #### 2.8 MFA required for staff
 As the **platform**, I want staff to use MFA so that admin access is protected.
@@ -460,13 +467,13 @@ As the **delivery team**, I want Keycloak deployed in staging and production so 
 
 ### E3: Listing Management and Rich Profiles
 
-**Goal:** Let businesses create, maintain, and showcase listings, with fields that depend on their plan.
+**Goal:** Let businesses create, maintain, and showcase any number of listings, with fields that depend on each listing's tier.
 
 | ID | Story | Pri | Pts | Sprint | Team |
 |---|---|---|---|---|---|
 | 3.1 | Create a listing | M | 5 | 2 | svc, ui |
-| 3.2 | Website and social links for Platinum | M | 3 | 6 | svc, ui |
-| 3.3 | Branch locations | M | 5 | 6 | svc, ui |
+| 3.2 | Website and social links for Platinum listings | M | 3 | 6 | svc, ui |
+| 3.3 | Add more listings | M | 5 | 6 | svc, ui |
 | 3.4 | Address entry and geocoding | M | 3 | 2 | svc, ui |
 | 3.5 | Edit, pause, and reactivate a listing | M | 3 | 2 | svc, ui |
 | 3.6 | Listing approval workflow | M | 3 | 3 | svc, ui |
@@ -480,26 +487,28 @@ As a **business**, I want to create a listing with my name, phone, category, and
 
 **Acceptance criteria**
 - Required fields are validated, and the address is optional.
-- The listing is created in the chosen location and city.
-- A unique slug is generated (6.1).
+- The listing is created in the chosen location and city, with a unique slug (6.1).
+- The account's first listing is its **default Silver listing**, created during onboarding (2.2). Additional listings are added through 3.3.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 2 · *Team:* svc, ui
 
-#### 3.2 Website and social links for Platinum
-As a **Platinum business**, I want to show my website and social links so that customers can reach me online.
+#### 3.2 Website and social links for Platinum listings
+As the owner of a **Platinum listing**, I want to show my website and social links so that customers can reach me online.
 
 **Acceptance criteria**
-- The fields can be edited only on Platinum, and URLs are validated.
-- Links are hidden if the business moves to a lower plan.
+- The fields can be edited only on Platinum listings, and URLs are validated.
+- Links are hidden if the listing moves to a lower tier, and kept so they can be restored.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 6 · *Team:* svc, ui
 
-#### 3.3 Branch locations
-As a **business**, I want to add branch locations under one account so that all my locations are listed.
+#### 3.3 Add more listings
+As a **business**, I want to add any number of listings, each at the tier I choose, so that all my locations and services are listed.
 
 **Acceptance criteria**
-- Each branch is its own listing with its own slug.
-- Each branch adds an add-on charge to the consolidated invoice (7.5).
+- Each listing has its own slug, profile, and **tier** (Silver, Gold, or Platinum), chosen when it's added.
+- Each listing is charged at its tier price, prorated for the first period (SPEC-BILL-01, BR-PE-17).
+- There's no limit beyond the safety cap in `account.listings.max`.
+- An account always keeps at least one listing (BR-PE-06).
 
 *Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* svc, ui
 
@@ -514,11 +523,11 @@ As a **business**, I want my address validated and placed on the map so that cus
 *Priority:* M · *Points:* 3 · *Sprint:* 2 · *Team:* svc, ui
 
 #### 3.5 Edit, pause, and reactivate a listing
-As a **business**, I want to keep my listing up to date so that it stays accurate.
+As a **business**, I want to keep my listings up to date so that they stay accurate.
 
 **Acceptance criteria**
 - Paused listings are hidden from the public.
-- Fields the plan doesn't allow are locked in the form.
+- Fields the listing's tier doesn't allow are locked in the form, with a prompt to move the listing up a tier.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 2 · *Team:* svc, ui
 
@@ -546,15 +555,15 @@ As a **business**, I want to add a description, hours, year established, and pay
 **Acceptance criteria**
 - Hours support several ranges per day and holiday closures.
 - Hours are interpreted in the listing's city time zone.
-- The description length limit is set by the plan.
+- The description length limit is set by the listing's tier.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 3 · *Team:* svc, ui
 
 #### 3.9 Photo gallery
-As a **business**, I want a photo gallery so that I can show my work.
+As a **business**, I want a photo gallery on each listing so that I can show my work.
 
 **Acceptance criteria**
-- The limit is set by the plan (indicative: Silver 3, Gold 10, Platinum 25).
+- The limit is set by the listing's tier (indicative: Silver 3, Gold 10, Platinum 25).
 - Photos can be reordered, and each has alt text.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 7 · *Team:* svc, ui · *Depends on:* Q6
@@ -639,10 +648,10 @@ As an **admin**, I want specialties under each subcategory so that the taxonomy 
 *Priority:* M · *Points:* 3 · *Sprint:* 2 · *Team:* svc, ui
 
 #### 4.7 Tag a listing with specialties
-As a **business**, I want to tag my listing with specialties so that I appear in more specific searches.
+As a **business**, I want to tag each listing with specialties so that it appears in more specific searches.
 
 **Acceptance criteria**
-- The number allowed is set by the plan (to be confirmed: Silver 3, Gold 5, Platinum 10).
+- The number allowed is set by the listing's tier (to be confirmed: Silver 3, Gold 5, Platinum 10).
 - Specialties appear on the profile and can be filtered on.
 
 *Priority:* M · *Points:* 2 · *Sprint:* 2 · *Team:* svc, ui · *Depends on:* Q6
@@ -750,7 +759,7 @@ As the **platform**, I want Maps costs controlled so that the bill stays predict
 | 6.6 | Dynamic specialty pages | M | 5 | 4 | ui, svc |
 | 6.7 | Keep thin pages out of the index | M | 3 | 4 | svc, ui |
 | 6.8a | Core schema markup | M | 3 | 4 | ui |
-| 6.8b | Schema for reviews, service area, and plan | M | 2 | 8 | ui |
+| 6.8b | Schema for reviews, service area, and tier | M | 2 | 8 | ui |
 | 6.9 | Metadata overrides | S | 3 | 10 | svc, ui |
 | 6.12 | Search Console setup | M | 1 | 11 | infra |
 
@@ -826,12 +835,12 @@ As the **marketing team**, I want structured data on our pages so that they're e
 
 *Priority:* M · *Points:* 3 · *Sprint:* 4 · *Team:* ui
 
-#### 6.8b Schema for reviews, service area, and plan
+#### 6.8b Schema for reviews, service area, and tier
 As the **marketing team**, I want the structured data to reflect each listing's details so that it stays accurate.
 
 **Acceptance criteria**
 - AggregateRating appears only once reviews are unlocked, and `areaServed` comes from the service area.
-- `sameAs` links appear only for Platinum, and the address is omitted when the business hides it.
+- `sameAs` links appear only for Platinum listings, and the address is omitted when the business hides it.
 
 *Priority:* M · *Points:* 2 · *Sprint:* 8 · *Team:* ui
 
@@ -857,31 +866,33 @@ As the **marketing team**, I want Search Console set up so that we can monitor i
 
 ### E7: Subscriptions and Pricing
 
-**Goal:** Silver, Gold, and Platinum plans, discounts up to 100% on plan prices, the $1 service fee, and upgrades.
+**Goal:** Business and shopper accounts, Silver, Gold, and Platinum listing tiers (every business account starts with a default Silver listing), discounts up to 100% on tier prices, and the $1 service fee.
 
 | ID | Story | Pri | Pts | Sprint | Team |
 |---|---|---|---|---|---|
-| 7.1 | Configure plans | M | 5 | 5 | svc, ui |
+| 7.1 | Configure listing tiers and account pricing | M | 5 | 5 | svc, ui |
 | 7.2 | Discount engine | M | 5 | 6 | svc, ui |
-| 7.3 | Choose a plan and pay at signup | M | 5 | 5 | svc, ui |
-| 7.4 | Upgrade and downgrade | M | 5 | 6 | svc, ui |
-| 7.5 | Consolidated billing for branches | M | 5 | 6 | svc |
+| 7.3 | Sign up and pay | M | 5 | 5 | svc, ui |
+| 7.4 | Upgrade or downgrade a listing | M | 5 | 6 | svc, ui |
+| 7.5 | One invoice for all listings | M | 5 | 6 | svc |
 | 7.6 | $1 monthly service fee | M | 3 | 5 | svc |
-| 7.7 | Lapsed subscriptions | M | 3 | 6 | svc |
+| 7.7 | Lapsed accounts | M | 3 | 6 | svc |
 | 7.8 | Billing history and invoices | S | 3 | 10 | ui, svc |
 | 7.10 | Entitlement engine | M | 5 | 2 | svc |
-| 7.11 | Plans discounted to $0 | M | 3 | 6 | svc |
+| 7.11 | Listings discounted to $0 | M | 3 | 6 | svc |
 | 7.12 | Promotions at checkout and on the pricing page | M | 2 | 6 | ui |
 | 7.13 | Sales tax on subscriptions | TBD | 5 | TBD | svc |
 
-#### 7.1 Configure plans
-As an **admin**, I want to configure plans so that pricing can change without code changes.
+#### 7.1 Configure listing tiers and account pricing
+As an **admin**, I want to configure listing tiers and account pricing so that prices and features can change without code changes.
 
 **Acceptance criteria**
-- Plans are **Silver, Gold, Platinum**, and the shopper plan. There's no free plan.
-- Each plan has a price, billing interval, entitlements, and status.
+- There are **two account types**, business and shopper, and **three listing tiers**: Silver, Gold, and Platinum.
+- Each tier has a monthly price and entitlements. The **shopper account has a monthly price** and entitlements.
+- Every new business account gets a **default Silver listing**, charged the Silver price.
+- Price changes create a new price version, and existing listings keep their price (SPEC-BILL-01, section 6.6).
 
-*Priority:* M · *Points:* 5 · *Sprint:* 5 · *Team:* svc, ui
+*Priority:* M · *Points:* 5 · *Sprint:* 5 · *Team:* svc, ui · *Depends on:* OQ-3
 
 #### 7.2 Discount engine
 As an **admin**, I want to create discounts so that I can run promotions such as an Arizona launch offer.
@@ -889,54 +900,61 @@ As an **admin**, I want to create discounts so that I can run promotions such as
 **Acceptance criteria**
 - A discount is a percentage **up to 100%** or a fixed amount that never reduces a charge below $0.
 - Duration is once, a set number of months, or forever, with an optional expiry date for redemption.
-- A discount covers the plan price and optionally add-on locations. **It never applies to the $1 service fee.**
-- Discounts can be codes or automatic campaigns, limited by date window, location, plan, number of redemptions, and new customers only.
-- Only one discount applies per subscription.
+- A discount applies to **listing tier prices** (optionally only certain tiers) or the **shopper account price**. **It never applies to the $1 service fee.**
+- **Discounts apply to the default Silver listing the same way** as to any other Silver listing.
+- Discounts can be codes or automatic campaigns, limited by date window, location, tier, number of redemptions, and new customers only.
+- Each listing, and each shopper account price, can carry one discount at a time.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* svc, ui
 
-#### 7.3 Choose a plan and pay at signup
-As a **business**, I want to choose a plan and pay when I sign up so that my listing can go live.
+#### 7.3 Sign up and pay
+As a **new business or shopper**, I want to pay when I sign up so that my account becomes active.
 
 **Acceptance criteria**
-- Plan selection leads to payment (8.1), then listing activation.
-- The total shown includes the $1 service fee and any discount.
+- A new business account's first invoice is the $1 service fee plus the **Silver price for the default listing** (or the higher tier's price if the owner chose one).
+- A new shopper account's first invoice is the **shopper account price, less any discount, plus the $1 service fee**.
+- The total shown includes any discount.
 - **A card is always required**, because the service fee is always charged.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 5 · *Team:* svc, ui
 
-#### 7.4 Upgrade and downgrade
-As a **business**, I want to change my plan so that I get the visibility I want.
+#### 7.4 Upgrade or downgrade a listing
+As a **business owner**, I want to upgrade or downgrade each of my listings, including the default Silver listing, so that each listing gets the visibility I want.
 
 **Acceptance criteria**
-- Price differences are prorated.
-- Upgrades apply immediately, and downgrades at the end of the billing period.
-- A discount carries over only if it covers the new plan.
+- **Every listing can be upgraded or downgraded on its own**, and changing one doesn't affect the account's other listings.
+- Upgrades take effect immediately, charging the prorated price difference. Downgrades take effect at the end of the billing period and can be canceled until then.
+- Silver is the lowest tier. To stop paying for a Silver listing, the owner removes it (unless it's the account's last listing).
+- Only the account **owner** can change tiers. The owner is the account's only user (SPEC-BILL-01, BR-PE-38).
+- A discount carries over only if it covers the new tier.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* svc, ui
 
-#### 7.5 Consolidated billing for branches
-As a **business**, I want charges for all my branches on one account so that billing is simple.
+#### 7.5 One invoice for all listings
+As a **business**, I want all my listing charges on one invoice so that billing is simple.
 
 **Acceptance criteria**
-- There's one Stripe customer and one invoice, with a line item per listing and one for the service fee.
+- There's one Stripe customer and one subscription per account.
+- The invoice has one line for the service fee and one line per listing at its tier price, **including the default Silver listing**.
+- Adding, removing, or changing the tier of a listing updates the invoice, prorated.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* svc
 
 #### 7.6 $1 monthly service fee
-As the **platform**, I want the $1 monthly service fee charged to every business and shopper so that it's collected consistently.
+As the **platform**, I want the $1 monthly service fee charged to every business and shopper account so that it's collected consistently.
 
 **Acceptance criteria**
-- The fee is a recurring item on every invoice.
-- **Discounts can never apply to it**, so every member pays at least $1 a month.
+- The fee is a recurring item on every invoice, once per account whatever the number of listings.
+- **Discounts can never apply to it**, so every account pays at least $1 a month.
 
-*Priority:* M · *Points:* 3 · *Sprint:* 5 · *Team:* svc · *Depends on:* Q1
+*Priority:* M · *Points:* 3 · *Sprint:* 5 · *Team:* svc · *Depends on:* Q1, OQ-6
 
-#### 7.7 Lapsed subscriptions
-As the **platform**, I want unpaid subscriptions handled automatically so that unpaid listings don't stay live.
+#### 7.7 Lapsed accounts
+As the **platform**, I want unpaid accounts handled automatically so that unpaid listings don't stay live.
 
 **Acceptance criteria**
-- There's a 7-day grace period, after which the listing is hidden and the member is emailed.
+- There's a 7-day grace period, after which **all of the account's listings** are hidden and the owner is emailed.
+- Paying restores every listing at its tier, and nothing is deleted.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 6 · *Team:* svc
 
@@ -949,21 +967,23 @@ As a **member**, I want to see my billing history so that I can track my costs.
 *Priority:* S · *Points:* 3 · *Sprint:* 10 · *Team:* ui, svc
 
 #### 7.10 Entitlement engine
-As the **platform**, I want one engine for plan features and limits so that every feature follows the plan configuration.
+As the **platform**, I want one engine for tier and account-type features and limits so that every feature follows the configuration.
 
 **Acceptance criteria**
-- The API enforces gallery size, specialty count, placement, links, messaging, analytics level, and branch count.
-- Downgrades apply at the end of the billing period.
+- **Listing entitlements** come from each listing's tier: gallery size, specialties, description length, links, placement, messaging, and analytics level.
+- **Account entitlements** come from the account type: listing cap, review rights, and secret shopper eligibility.
+- The API enforces them all, and tier downgrades apply at the end of the billing period.
+- Source of truth: SPEC-BILL-01.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 2 · *Team:* svc
 
-#### 7.11 Plans discounted to $0
-As a **member on a discounted plan**, I want to know what I'll pay and when so that there are no surprises.
+#### 7.11 Listings discounted to $0
+As the **owner of a discounted listing**, I want to know what I'll pay and when so that there are no surprises.
 
 **Acceptance criteria**
-- A subscription whose plan is discounted to $0 is an ordinary active subscription with all the plan's entitlements, and its invoice is $1 for the service fee.
-- It counts as active for reviews and secret shopper eligibility.
-- Members are emailed 7 days before the full plan price is first charged, showing the new total.
+- A listing whose tier price is discounted to $0 has all of its tier's entitlements.
+- The account's invoice still includes the $1 service fee.
+- The owner is emailed 7 days before the full tier price is first charged, showing the new total.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 6 · *Team:* svc
 
@@ -971,7 +991,8 @@ As a **member on a discounted plan**, I want to know what I'll pay and when so t
 As a **visitor**, I want to see promotions clearly so that I understand what I'll pay.
 
 **Acceptance criteria**
-- A plan discounted to $0 shows as "Free" with the service fee and later price, for example "Silver free for 3 months: you pay only the $1/month service fee, then $X/month".
+- A tier discounted to $0 shows as "Free" with the later price, for example "Gold listing free for 3 months, then $X/month".
+- The $1 monthly account service fee is always shown separately.
 
 *Priority:* M · *Points:* 2 · *Sprint:* 6 · *Team:* ui
 
@@ -1053,10 +1074,10 @@ As an **admin**, I want to issue refunds so that I can resolve billing disputes.
 As a **shopper or business**, I want to review a business so that I can share my experience.
 
 **Acceptance criteria**
-- Reviews have a 1–5 rating and text.
-- Only users with an active subscription can review, including subscriptions discounted to $0.
-- One review per business per reviewer, and it can be edited.
-- A business can't review itself.
+- Reviews have a 1–5 rating and text, and are written about a listing.
+- Only accounts in good standing (not lapsed or suspended) can review.
+- One review per listing per reviewer, and it can be edited.
+- A business can't review its own listings.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc, ui
 
@@ -1106,22 +1127,22 @@ As a **business**, I want to reply publicly to reviews so that I can address fee
 |---|---|---|---|---|---|
 | 10.1 | Monthly random selection | M | 8 | 8 | svc |
 | 10.2 | Eligibility rules | S | 3 | 10 | svc |
-| 10.3 | Assign businesses to secret shoppers | M | 5 | 8 | svc |
+| 10.3 | Assign listings to secret shoppers | M | 5 | 8 | svc |
 | 10.4 | Confidential notifications | M | 3 | 8 | svc, ui |
 | 10.5 | Submit an evaluation | M | 5 | 8 | svc, ui |
 | 10.6 | Survey configuration | S | 5 | 10 | svc, ui |
 | 10.7 | Program dashboard | S | 5 | 10 | ui, svc |
 
 #### 10.1 Monthly random selection
-As the **platform**, I want 1 in 100 active businesses and shoppers selected each month in each location so that the program is fair.
+As the **platform**, I want 1 in 100 active business accounts and 1 in 100 active shopper accounts selected each month in each location so that the program is fair.
 
 **Acceptance criteria**
 - The job runs at the start of the 1st of the month **in the location's time zone** (`America/Phoenix` for Arizona).
 - At least one of each is selected when the pool isn't empty.
-- Only active subscriptions are eligible, including those discounted to $0.
+- Only accounts in good standing are eligible. A business account counts once, however many listings it has.
 - The random seed and selections are logged, and a location can't be selected twice in a month.
 
-*Priority:* M · *Points:* 8 · *Sprint:* 8 · *Team:* svc
+*Priority:* M · *Points:* 8 · *Sprint:* 8 · *Team:* svc · *Depends on:* Q18
 
 #### 10.2 Eligibility rules
 As the **platform**, I want eligibility rules applied so that selection isn't biased.
@@ -1131,12 +1152,12 @@ As the **platform**, I want eligibility rules applied so that selection isn't bi
 
 *Priority:* S · *Points:* 3 · *Sprint:* 10 · *Team:* svc
 
-#### 10.3 Assign businesses to secret shoppers
-As the **platform**, I want each secret shopper assigned businesses to evaluate so that coverage is spread out.
+#### 10.3 Assign listings to secret shoppers
+As the **platform**, I want each secret shopper assigned listings to evaluate so that coverage is spread out.
 
 **Acceptance criteria**
-- A secret shopper is never assigned their own business or a direct competitor in the same category.
-- Businesses without a secret shopper review yet are prioritized.
+- A secret shopper is never assigned a listing owned by their own business account, or a direct competitor in the same category.
+- Listings without a secret shopper review yet are prioritized.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc · *Depends on:* Q10, Q11
 
@@ -1154,7 +1175,7 @@ As a **secret shopper**, I want to submit my review and survey so that my evalua
 
 **Acceptance criteria**
 - The survey is required. The MVP uses a default question set seeded by migration.
-- Submitting unlocks reviews for the business (9.2).
+- Submitting unlocks reviews for that listing (9.2).
 
 *Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc, ui
 
@@ -1231,22 +1252,21 @@ As the **data team**, I want bot traffic excluded so that metrics are accurate.
 
 ### E12: Data Visualizations
 
-**Goal:** Dashboards for subscribers by plan, for admins, and for the public.
+**Goal:** Dashboards for each listing by tier, for shoppers, for admins, and for the public.
 
 | ID | Story | Pri | Pts | Sprint | Team |
 |---|---|---|---|---|---|
-| 12.1 | Business dashboards by plan | M | 8 | 9 | ui, svc |
+| 12.1 | Business dashboards by listing tier | M | 8 | 9 | ui, svc |
 | 12.2 | Admin analytics dashboard | M | 5 | 9 | ui, svc |
 | 12.3 | Public charts | S | 5 | 10 | ui, svc |
 | 12.4 | Shopper dashboard | S | 3 | 10 | ui |
 
-#### 12.1 Business dashboards by plan
-As a **business**, I want analytics that match my plan so that I can see how my listing performs.
+#### 12.1 Business dashboards by listing tier
+As a **business**, I want analytics for each listing that match its tier so that I can see how each one performs.
 
 **Acceptance criteria**
-- Silver: views and clicks.
-- Gold adds trends and the search terms that lead to the listing.
-- Platinum adds category benchmarks and review and survey insights.
+- Each listing's analytics follow its tier: Silver BASIC (views and clicks), Gold STANDARD (adds trends and search terms), Platinum ADVANCED (adds category benchmarks and review and survey insights).
+- An **account overview** shows BASIC metrics summed across all listings.
 - Message leads are included (16.8).
 
 *Priority:* M · *Points:* 8 · *Sprint:* 9 · *Team:* ui, svc
@@ -1255,7 +1275,7 @@ As a **business**, I want analytics that match my plan so that I can see how my 
 As an **admin**, I want platform-wide analytics so that I can monitor the business.
 
 **Acceptance criteria**
-- It shows searches, listings, revenue (including discounted and full-price members), and reviews, filterable by location.
+- It shows searches, listings by tier, revenue (service fees, tier revenue, and discounted listings), and reviews, filterable by location.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 9 · *Team:* ui, svc
 
@@ -1308,11 +1328,11 @@ As a **mobile user**, I want the site to work on my phone so that I can use it a
 *Priority:* M · *Points:* 3 · *Sprint:* 2 · *Team:* ui
 
 #### 13.3 Pricing page
-As a **visitor**, I want to compare plans so that I can choose one.
+As a **visitor**, I want to compare listing tiers and account pricing so that I can decide what to buy.
 
 **Acceptance criteria**
-- Plan data is read from the configuration in 7.1.
-- Active promotions are shown per 7.12.
+- It shows the three listing tiers and what each includes, that every business account starts with one Silver listing (charged at the Silver price), the shopper account price, and the $1 service fee.
+- Data is read from the configuration in 7.1, and active promotions are shown per 7.12.
 
 *Priority:* M · *Points:* 2 · *Sprint:* 5 · *Team:* ui
 
@@ -1363,7 +1383,7 @@ As the **platform**, I want every admin screen to respect role and location scop
 As an **admin or operator**, I want to search, filter, edit, and approve members so that I can resolve issues.
 
 **Acceptance criteria**
-- Filters include plan, discount, status, location, category, signup date, and payment status.
+- Filters include account type, listing tier, discount, status, location, category, signup date, and payment status.
 - The list can be exported to CSV.
 - Access is limited to each user's scope.
 
@@ -1466,7 +1486,7 @@ As a **member**, I want my personal data handled lawfully so that I can trust Bl
 | 16.3 | Member inbox | M | 5 | 7 | ui, svc |
 | 16.4 | Replies through an email relay | M | 5 | 7 | svc |
 | 16.5 | Shopper message history | S | 3 | 10 | ui, svc |
-| 16.6 | Messaging by plan | M | 2 | 7 | svc |
+| 16.6 | Messaging by listing tier | M | 2 | 7 | svc |
 | 16.7 | Report and block senders | S | 3 | 10 | svc, ui |
 | 16.8 | Message leads in analytics | M | 2 | 9 | svc |
 
@@ -1513,11 +1533,11 @@ As a **logged-in shopper**, I want to see my past messages.
 
 *Priority:* S · *Points:* 3 · *Sprint:* 10 · *Team:* ui, svc
 
-#### 16.6 Messaging by plan
-As the **platform**, I want messaging controlled by the entitlement engine so that it can be adjusted per plan.
+#### 16.6 Messaging by listing tier
+As the **platform**, I want messaging controlled by the entitlement engine so that it can be adjusted per tier.
 
 **Acceptance criteria**
-- Messaging is enabled for Silver, Gold, and Platinum by default through the entitlement engine (7.10).
+- `listing.messaging.receive` is enabled for Silver, Gold, and Platinum listings by default (7.10).
 
 *Priority:* M · *Points:* 2 · *Sprint:* 7 · *Team:* svc
 
@@ -1555,6 +1575,7 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | P.8 | Data warehouse export | For advanced analytics (ADR-0011). |
 | P.9 | Redis/Valkey caching | When a second backend task is added (ADR-0010). |
 | P.10 | Expansion to new locations | Each new state is configuration plus data seeding, following the pattern of story 1.5. |
+| P.11 | Multiple users per business account | Team invites and an EDITOR role (formerly story 2.7). Adds `account.team_members.max` back to the entitlement catalogue. |
 
 ---
 
@@ -1563,13 +1584,22 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | ID | Former story | Outcome | Reason |
 |---|---|---|---|
 | 5.4 | Listing detail page | Merged into 3.10 | Replaced by the rich profile page |
-| 7.9 | Free tier | Removed | There is no free plan. Discounts (7.2, 7.11, 7.12) replace it. |
+| 7.9 | Free tier | Removed | There is no free account. Every account pays the $1 service fee. Discounts (7.2, 7.11, 7.12) are the acquisition lever. |
+| — | Silver, Gold, and Platinum as account plans | **Replaced (v1.1)** | There are two account types (business and shopper). Silver, Gold, and Platinum are tiers of individual listings, and every business account starts with a default Silver listing. |
+| 3.3 | Branch locations (add-ons billed on the account's plan) | **Rewritten (v1.1)** as "Add more listings" | Any number of listings, each with its own tier |
+| 7.1, 7.3, 7.4, 7.5, 7.7, 7.10, 7.11 | Plan configuration, plan signup, plan changes, add-on billing, lapsed subscriptions, plan entitlements, plans discounted to $0 | **Rewritten (v1.1)** | Now cover listing tiers, account pricing, per-listing tier changes, one invoice per account, and per-listing and per-account entitlements |
+| 2.2, 3.2, 3.9, 4.7, 6.8b, 9.1, 10.1, 10.3, 12.1, 12.2, 13.3, 14.3, 16.6 | Various | **Updated (v1.1)** | Wording changed from plans to listing tiers and account types |
+| 0.2, 0.3 | Repository scaffolding, CI pipelines | **Updated (v1.5)** | Backend on Spring Boot 4.1 and Java 25. New story 0.7 checks library compatibility. |
+| 7.1, 7.3 | Shopper account price | **Updated (v1.4)** | The shopper account always has a price, discounts apply to it, and the $1 service fee is additional |
+| 2.7 | Business team invites | **Moved to post-MVP (v1.3)** as P.11 | Each business account has exactly one user, its owner, for now |
+| 7.4 | Change a listing's tier | **Rewritten (v1.2)** as "Upgrade or downgrade a listing" | Owners can upgrade or downgrade every listing, including the default one. Downgrades can be canceled before they take effect. |
+| 2.2, 2.6, 3.1, 3.3, 7.1, 7.2, 7.3, 7.5, 13.3 | Various | **Updated (v1.2)** | The default Silver listing is charged the Silver price and discounted like any other listing. There's no free allowance. |
 | 2.10 | Session management page | Removed | Keycloak's account console provides it |
 | 2.13 | Impersonation | Moved to post-MVP | Could-have |
 | E17 | Keycloak migration epic (about 30–40 pts) | Cancelled | Keycloak is used from day one (ADR-0005) |
 | — | Local authentication (credentials, TOTP, reset tokens) | Removed | Handled by Keycloak |
 | — | Local social login | Moved to post-MVP | Keycloak identity brokering (P.1) |
-| 7.2 | Discounts | Changed from Should to **Must**, moved from Sprint 10 to Sprint 6 | Discounts are the main acquisition lever now that there's no free plan |
+| 7.2 | Discounts | Changed from Should to **Must**, moved from Sprint 10 to Sprint 6 | Discounts are the main acquisition lever |
 | 3.6 | Listing approval | Changed from Should to **Must** | Member approval is a Must-have |
 
 ---
@@ -1578,10 +1608,9 @@ As a **business**, I want messages counted as leads so that I can see the value 
 
 | Question | Summary | Stories affected | Needed by |
 |---|---|---|---|
-| Q1 | Card fees on $1 invoices when a plan is discounted to $0: accept the cost, or bill the fee annually ($12) during discounted periods? | 7.6 | Before Sprint 5 |
+| Q1 | Card fees on $1 invoices, which happen when all of an account's listings are discounted to $0, or when a shopper's account price is discounted to $0: accept the cost, or bill the service fee annually ($12)? | 7.6 | Before Sprint 5 |
 | Q5 | Are a list of cities or a radius enough for service areas? | 5.7 | Before Sprint 6 |
-| Q6 | How many specialties and gallery photos should each plan allow? | 3.9, 4.7 | Before Sprint 2 |
-| Q7 | Is business team access needed at launch? | 2.7 | Before Sprint 10 |
+| Q6 | How many specialties and gallery photos should each listing tier allow? | 3.9, 4.7 | Before Sprint 2 |
 | Q8 | URL pattern for specialty pages, and whether the state appears in URLs. | 6.6 | Before Sprint 4 |
 | Q9 | Is 3 listings the right threshold for indexing a dynamic page? | 6.7 | Before Sprint 4 |
 | Q10 | Secret shopper incentives, and how many businesses each one evaluates. | 10.3 | Before Sprint 8 |
@@ -1589,3 +1618,6 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | Q12 | Does Arizona's transaction privilege tax (TPT) apply to subscriptions? | 7.13 | Before billing goes live |
 | Q14 | Staff MFA: default conditional OTP with reconciliation, or a custom flow keyed on the staff role? | 2.21 | Before Sprint 10 |
 | Q15 | Final list of Arizona launch cities. | 1.5 | Before Sprint 2 |
+| Q18 | Secret shopper selection: 1 in 100 business **accounts** (proposed, so multi-listing accounts aren't favored) or 1 in 100 **listings** (the original brief's wording)? | 10.1 | Before Sprint 8 |
+| OQ-3 | Tier prices and the shopper account price (SPEC-BILL-01). | 7.1 | Before Sprint 5 |
+| OQ-6 | Does a person with both account types pay two service fees? (Proposed: yes.) | 7.6 | Before Sprint 5 |
