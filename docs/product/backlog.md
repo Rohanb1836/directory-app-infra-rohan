@@ -44,7 +44,7 @@
 | [E4](#e4) | Categories and Browsing | 7 | 23 | 0 | 0 | 23 |
 | [E5](#e5) | Search and Maps | 7 | 33 | 3 | 0 | 36 |
 | [E6](#e6) | SEO Tools (Basic MVP) | 11 | 30 | 3 | 0 | 33 |
-| [E7](#e7) | Subscriptions and Pricing | 12 | 41 | 3 | 5 | 49 |
+| [E7](#e7) | Accounts, Tiers, and Pricing | 12 | 41 | 3 | 5 | 49 |
 | [E8](#e8) | Payment Processing | 4 | 13 | 6 | 0 | 19 |
 | [E9](#e9) | Reviews | 5 | 15 | 3 | 0 | 18 |
 | [E10](#e10) | Secret Shopper Program | 7 | 21 | 13 | 0 | 34 |
@@ -864,7 +864,7 @@ As the **marketing team**, I want Search Console set up so that we can monitor i
 
 <a id="e7"></a>
 
-### E7: Subscriptions and Pricing
+### E7: Accounts, Tiers, and Pricing
 
 **Goal:** Business and shopper accounts, Silver, Gold, and Platinum listing tiers (every business account starts with a default Silver listing), discounts up to 100% on tier prices, and the $1 service fee.
 

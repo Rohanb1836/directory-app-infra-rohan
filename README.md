@@ -9,6 +9,7 @@ This revision adopts **Keycloak from day one** and cancels the planned migration
 | Path | What it is | Target repository |
 |---|---|---|
 | `docs/product/mvp.md` | MVP definition | `directory-app-infra/docs/product/` |
+| `docs/product/todo.md` | To-do list: privacy, terms, profile switching, billing intervals, annual discounts, update limits, addresses, taxes per location, cross-state listings, demand tracking by state | `directory-app-infra/docs/product/` |
 | `docs/product/backlog.md` | Product backlog: epics, user stories, acceptance criteria, sprint plan | `directory-app-infra/docs/product/` |
 | `docs/product/specs/SPEC-BILL-01-listing-tiers-and-entitlements.md` | Feature spec: account types, listing tiers, and entitlements (billing, part 1) | `directory-app-infra/docs/product/specs/` |
 | `docs/adr/` | ADR-0001 to ADR-0018, with an index and status list | `directory-app-infra/docs/adr/` |
