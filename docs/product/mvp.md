@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Document version** | 1.9 |
-| **Date** | 2026-09-30 |
-| **Status** | Draft for stakeholder review (v1.9: two account types; Silver, Gold, and Platinum are listing tiers; the default Silver listing is charged and discounted like any other; only the owner changes tiers; one user per business account; shopper accounts have a price, discounts apply, and the $1 fee is additional; backend on Spring Boot 4.1 and Java 25) |
+| **Document version** | 1.10 |
+| **Date** | 2026-10-06 |
+| **Status** | Draft for stakeholder review (v1.10: two account types; Silver, Gold, and Platinum are listing tiers; the default Silver listing is charged and discounted like any other; only the owner changes tiers; one user per business account; shopper accounts have a price, discounts apply, and the $1 fee is additional; backend on Spring Boot 4.1 and Java 25; answers to Q1–Q15 applied) |
 | **Repositories** | `directory-app-svc` (backend), `directory-app-ui` (frontend), `directory-app-infra` (infrastructure) |
-| **Related documents** | ADR-0001 to ADR-0018, Identity and Access Design v2.2, SPEC-BILL-01 v0.5, Product Backlog v1.5 (`directory-app-infra/docs/`) |
+| **Related documents** | ADR-0001 to ADR-0019, Answers Log (2026-10-06), Identity and Access Design v2.2, SPEC-BILL-01 v0.6, Product Backlog v1.6 (`directory-app-infra/docs/`) |
 
 ---
 
@@ -40,10 +40,10 @@ The directory's point of difference is **credible reviews**. Reviews of a busine
 | Item | Detail |
 |---|---|
 | Launch location | **Arizona (AZ)**, the first active location. The other 49 location slots stay in draft until expansion. |
-| Launch cities | Seed the city list with the major metros first: Phoenix, Tucson, Mesa, Chandler, Scottsdale, Gilbert, Glendale, Tempe, Peoria, and Flagstaff. The remaining cities are added as listings arrive. *(The final list is for the product owner to confirm.)* |
-| Time zone | **Arizona doesn't observe daylight saving time**, so most of the state uses `America/Phoenix`. **The Navajo Nation does observe it** and uses `America/Denver`. Each location and city stores an IANA time zone, which is used for business hours, "open now", and scheduled jobs such as the monthly secret shopper selection. |
+| Launch cities | **Confirmed (Q15): 11 cities.** Phoenix, Tucson, Mesa, Glendale, Scottsdale, Tempe, Goodyear, Gilbert, Chandler, Peoria, Surprise. Each state's major metro area spans several cities. A threshold for adding more cities, based on demand from each city, is to be discussed (see to-do T10). |
+| Time zone | **Arizona doesn't observe daylight saving time**, and all launch cities use `America/Phoenix`. Tribal-land time zones don't need special handling (Q15). Each location still stores an IANA time zone for future states. |
 | SEO | Launch sitemaps and category-by-city pages for the Arizona cities above first. |
-| Sales tax | Arizona charges a transaction privilege tax (TPT) at state and city level. Whether it applies to directory subscriptions needs a tax adviser's review before billing goes live (see Q12). |
+| Sales tax | **Answered (Q12, BPM sales tax policy):** Arizona has no state sales tax on advertising, but **some cities charge city tax, including Phoenix**. Subscribers in other states count towards each state's registration threshold (some are as low as 200 sales), which must be tracked. The approach is decided in to-do T8. |
 | Hosting region | Serving Arizona from AWS `us-west-2` (Oregon) gives lower latency than `us-east-1`, at similar prices. This is optional, because the CDN serves most public pages anyway (see ADR-0014). |
 
 ---
@@ -74,7 +74,7 @@ Staff accounts are created by invitation only and must use multi-factor authenti
 | Listing management | Create, edit, and publish any number of listings per business account, with an approval workflow | Must |
 | Categories | A three-level taxonomy: categories, subcategories, and specialties | Must |
 | Directory search | Keyword, category, and location search with filters. Results are ordered by tier, then alphabetically. | Must |
-| Maps and location | Google Maps view, address autocomplete with Places, and service areas | Must *(assumed)* |
+| Maps and location | Google Maps view, address autocomplete with Places, and service areas as a list of cities | Must *(confirmed, Q2)* |
 | SEO tools | Basic tools for the MVP: dynamic SEO pages, schema, metadata, and sitemaps | Must (basic) |
 | Accounts and listing tiers | Business and shopper accounts, Silver, Gold, and Platinum listing tiers, a default Silver listing for every business account, per-listing upgrades and downgrades, and discounts of up to 100% on tier prices | Must |
 | Payments | Recurring monthly billing through Stripe, on one invoice per account | Must |
@@ -88,13 +88,13 @@ Staff accounts are created by invitation only and must use multi-factor authenti
 
 ### 3.2 Out of scope for the MVP (planned for later releases)
 - Social login and passkeys. These are enabled later through Keycloak with no code migration.
-- Live chat. The MVP uses an email relay for messaging.
+- Live chat. It isn't planned (Q4). The MVP uses an email relay for messaging.
 - Advanced SEO tools: a content editor, a Search Console dashboard, SEO audits, FAQ schema, and "Best X in Y" editorial pages.
 - Metadata that members can edit themselves.
 - **Multiple users per business account** (team invites and an editor role). In the MVP each business account has exactly one user, its owner.
 - Admins viewing the site as a member (impersonation).
 - Native mobile apps.
-- Custom polygons for service areas. The MVP supports a list of cities or a radius.
+- Radius and custom polygons for service areas. The MVP supports a list of cities (Q5).
 - Configuring which visualizations each listing tier gets through the admin UI.
 - Exporting data to a warehouse, and advanced analytics.
 
@@ -122,10 +122,12 @@ There are **two account types**. There are no account plans.
 | Name, phone, category and subcategory, optional address | ✓ | ✓ | ✓ |
 | Listed in the directory and search | ✓ | ✓ | ✓ |
 | Logo, cover image, description, hours | ✓ | ✓ | ✓ |
-| Gallery photos *(indicative)* | 3 | 10 | 25 |
+| Gallery photos *(confirmed, Q6)* | 1 | 3 | 6 |
 | Specialties *(to be confirmed)* | 3 | 5 | 10 |
 | Receive visitor messages | ✓ | ✓ | ✓ |
 | Placement in category lists | Standard | **Above Silver** | **Above all other tiers** |
+| Featured on the directory landing page | — | ✓ | ✓ |
+| Shown on the map (unless online-only, or the owner opts out) | ✓ | ✓ | ✓ |
 | Website and social media links | — | — | ✓ |
 | Analytics for the listing | Basic: views and clicks | Adds trends and search terms | Adds category benchmarks and review and survey insights |
 | Monthly price | $ TBD (also charged for the default Silver listing) | $ TBD | $ TBD |
@@ -170,7 +172,8 @@ Within any category, city, or specialty list, results are ordered **Platinum (A�
 ### 5.3 Secret shopper program
 - On the 1st of every month, **1 in 100 active businesses and 1 in 100 active shoppers are selected at random in each location**, with at least one of each when the pool isn't empty.
 - Only accounts in good standing are eligible. **A business account counts once**, however many listings it has *(proposed: see Q18)*. Anyone selected the previous month is excluded.
-- Each secret shopper is assigned businesses to evaluate. **They are never assigned their own business or a direct competitor in the same category.** Businesses without a secret shopper review yet are prioritized.
+- **Each secret shopper evaluates, and can get a rebate from, no more than 2 listings** (Q10). **The rebate is offered by the listing.** Whether shoppers choose listings or are assigned them is to be decided in SPEC-REV-01.
+- A secret shopper never evaluates **their own business or a direct competitor in the same category**. A business acting as a secret shopper **makes the purchase in the listed company's name** (Q11). Listings without a secret shopper review yet are prioritized.
 - Assignments are confidential. The business never learns who evaluated it.
 - A secret shopper submits a review plus a structured survey. **Submitting it unlocks public reviews for that business.**
 - Each selection run records its random seed, so it can be audited and repeated. A location can't be selected twice in the same month.
@@ -185,6 +188,7 @@ Within any category, city, or specialty list, results are ordered **Platinum (A�
 - Visitors can contact a business without an account. They're protected by CAPTCHA, rate limits, and spam filtering.
 - Replies go through an email relay, so neither side's email address is revealed.
 - Each message counts as a lead in the business's analytics.
+- There's **no live chat** (Q4). When visitors can't find what they need, they can say what they're looking for and be emailed when it's added (story 4.8).
 
 ---
 
@@ -286,12 +290,12 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | **2** | Listings, taxonomy, and entitlements | 1.2, 1.5, 2.2, 2.17, 2.20, 3.1, 3.4, 3.5, 4.1, 4.6, 4.7, 7.10, 13.2 |  |
 | **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 |  |
 | **4** | SEO, search, and observability | 5.1, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8a, 15.4 | **R1: internal alpha** in Arizona |
-| **5** | Monetization core | 7.1, 7.3, 7.6, 8.1, 8.2, 11.1, 13.1, 13.3 |  |
+| **5** | Monetization core | 7.1, 7.3, 7.6, 7.13, 8.1, 8.2, 11.1, 13.1, 13.3 |  |
 | **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3 | **R2: paid beta** with Arizona businesses |
 | **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6 |  |
 | **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5 |  |
 | **9** | Administration and analytics | 2.5, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8 |  |
-| **10** | Should-have items | 2.21, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | Can move after the MVP (saves about 2 weeks) |
+| **10** | Should-have items | 2.21, 4.8, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | Can move after the MVP (saves about 2 weeks) |
 | **11** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | **R3: public MVP launch in Arizona** |
 
 ### 10.1 Sequencing rationale
@@ -320,15 +324,15 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | A4 | A shopper account is charged the shopper account price each month (discounts can apply), plus the $1 service fee. |
 | A5 | Only accounts in good standing can write reviews. |
 | A6 | One secret shopper review unlocks all approved reviews for that business. |
-| A7 | Secret shoppers are selected in each location every month (1%, with a minimum of 1). |
+| A7 | Secret shoppers are selected in each location every month (1%, with a minimum of 1). Each can evaluate, and get a rebate from, no more than 2 listings (Q10). |
 | A8 | "Surveys" means the structured questionnaire a secret shopper completes. |
 | A9 | Admins and operators can both read every location. Operators write only to the locations assigned to them. |
 | A10 | Stripe is the card processor, using hosted card fields (PCI SAQ-A). |
 | A11 | **There are two account types, business and shopper, and no account plans.** Every business account starts with a default Silver listing, which is charged and discounted like any other Silver listing. Discounts of up to 100% can bring a tier price to $0, but **never cover the $1 service fee**. Discounts don't stack. |
 | A12 | **Silver, Gold, and Platinum are tiers of individual listings.** Each listing has its own tier. All gated features are controlled by one entitlement engine (SPEC-BILL-01). |
 | A13 | Specialties are tags under a subcategory. |
-| A14 | A service area is a list of cities or a radius. A business can hide its street address. |
-| A15 | Messaging works without an account and uses an email relay. |
+| A14 | A service area is a **list of cities** (Q5). A business can hide its street address, or be **online-only** (no address, not on the map). |
+| A15 | Messaging works without an account and uses an email relay. There's no live chat (Q4). |
 | A16–A18 | Dynamic SEO pages are indexed only when they have 3 or more listings. Schema markup reflects each listing's tier and settings. |
 | A19 | **Each business account has exactly one user, its owner**, who is the only person who can change tiers, add or remove listings, and manage billing. |
 
@@ -338,21 +342,21 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 
 | # | Question | Affects |
 |---|---|---|
-| Q1 | Card fees on $1 invoices: an account pays only the $1 fee when **all of its listings**, or **its shopper account price**, are discounted to $0. Standard card fees take about a third of $1. Should we accept that as the cost of acquiring members, or bill the service fee **annually ($12)**? | E7, E8 |
-| Q2 | Is Maps and location a Must? It's currently assumed to be. | E5 |
+| Q1 | *Answered:* card fees on $1 invoices are accepted as a cost of acquiring members. **While an account's listings or shopper price are discounted to $0, the service fee is billed annually ($12)**, which also locks in those members. The mechanics go in SPEC-BILL-02, together with T4. | E7, E8 |
+| Q2 | *Answered:* maps are a Must. Silver listings appear on the map but **not on the directory landing page**. Online-only listings, and owners who opt out in their address options, aren't shown on the map. | E4, E5 |
 | Q3 | *Resolved:* discounts never cover the $1 service fee. A card is always required. | E7 |
-| Q4 | Is the email relay acceptable, or is live chat needed? Live chat would add 1–2 sprints. | E16 |
-| Q5 | Is a list of cities or a radius enough for service areas, or are custom polygons needed? | E5 |
-| Q6 | How many specialties and gallery photos should each listing tier allow? | E3, E4, E7 |
-| Q7 | *Resolved:* no team access at launch. Each business account has exactly one user, its owner. Multiple users come after the MVP (backlog P.11). | E2 |
-| Q8 | Should specialty URLs nest under the category or sit at the top level? Should the state appear in URLs? | E6 |
-| Q9 | Is 3 listings the right minimum for indexing a dynamic page? | E6 |
-| Q10 | What incentives do secret shoppers get, and how many businesses does each one evaluate? | E10 |
-| Q11 | Can a secret shopper who is a business review a competitor in the same category? It's currently assumed they can't. | E10 |
-| Q12 | Does the platform need to collect sales tax on subscriptions? **Start with Arizona's state and city transaction privilege tax (TPT).** Consider Stripe Tax. | E7, E8 |
-| Q13 | Confirm AWS, Stripe, and Postmark, and who owns each account. | ADR-0009, 0014, 0015 |
-| Q14 | Staff MFA: use the default conditional OTP flow with reconciliation, or a custom flow keyed on the `staff` role? | ADR-0005 |
-| Q15 | Confirm the list of Arizona cities to seed at launch, and whether the Navajo Nation's time zone needs handling for any city on it. | E1 |
+| Q4 | *Answered:* no live chat. The email relay is enough. Visitors who can't find what they need can say what they're looking for and be told when it's added (new story 4.8). | E4, E16 |
+| Q5 | *Answered:* a list of cities is enough. No radius or polygons. | E5 |
+| Q6 | *Partly answered:* gallery photos are **Silver 1, Gold 3, Platinum 6**. **Follow-up needed:** the product owner asked whether specialties mean categories. They're the third level under a subcategory (for example, Plumbers > Residential > Tankless water heaters). Keep them, and set a limit per tier? | E3, E4, E7 |
+| Q7 | *Resolved:* no team access at launch. Each business account has exactly one user, its owner. Multiple users come after the MVP (backlog P.11). The answer in the 9-30-26 sheet appears to address a different question (attending an event), so no change is needed. | E2 |
+| Q8 | *Partly answered:* **the state doesn't appear in URLs.** **Follow-up needed:** should a specialty page be `/directory/plumbers/phoenix/tankless-water-heaters` (under its category) or `/directory/tankless-water-heaters/phoenix` (on its own)? | E6 |
+| Q9 | *Answered:* apply noindex tags to pages with too few listings, keeping the category structure for future growth. The threshold stays at 3 listings. | E6 |
+| Q10 | *Answered, design needed:* **the incentive is a rebate offered by each listing** (its secret-shopper offer). A shopper can get a rebate from **no more than 2 listings**. Listings that aren't being chosen may need to improve their offer. **Follow-up needed:** do selected shoppers **choose** listings from the offers, or does the platform **assign** them? Who pays the rebate, and how? To be settled in SPEC-REV-01. | E10 |
+| Q11 | *Answered:* confirmed. A listed business can be a secret shopper (B2B), must make the purchase in the listed company's name, and never evaluates a competitor in the same category. | E10 |
+| Q12 | *Answered:* no Arizona state sales tax on advertising, but some cities (including Phoenix) charge city tax, and other states' registration thresholds must be tracked. Story 7.13 is now a Must in Sprint 5. The approach (configured rates or Stripe Tax) is to-do T8. | E7, E8 |
+| Q13 | *Partly answered:* the product owner owns the **Stripe** and **PayPal** accounts. **There are no AWS or Postmark accounts yet.** **Follow-up needed:** who creates and owns AWS and Postmark? Should PayPal be offered at checkout (it's currently Stripe only, ADR-0009)? | ADR-0009, 0014, 0015 |
+| Q14 | **Open:** the product owner asked for a discussion to clarify this. | ADR-0005 |
+| Q15 | *Answered:* 11 launch cities (section 1.3). Tribal-land time zones don't need handling. | E1 |
 | Q16 | *Resolved:* the default Silver listing is charged the Silver price, and discounts apply to it like any other Silver listing. | E7 |
 | Q17 | *Resolved:* not applicable. The default listing is an ordinary paid listing, so an upgrade charges the prorated difference. | E7 |
 | Q19 | *Resolved:* only the business account owner can upgrade or downgrade listings. | E7 |
@@ -367,7 +371,7 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | Too few businesses and shoppers join in Arizona | Low engagement. Not enough members for random secret shopper selection. | Introductory discounts (up to 100% during the Arizona launch) to grow listings. Minimum selection of one. Launch marketing focused on the largest Arizona metros first. |
 | Reviews stay locked for a long time | Few reviews are visible, which reduces the value of the directory | Prioritize businesses without a secret shopper review. Monitor completion rates. Admins can reselect. |
 | Listings move down when a free offer ends | Revenue falls short of forecasts | A card is always on file, because the service fee is always charged. Send a reminder 7 days before the full price is first charged. Always show the price after the discount. |
-| Card fees on small charges | An account whose listings are all discounted to $0 (for example, a launch offer on the default Silver listing) pays only the $1 fee, and standard card fees take about a third of it | Decide Q1: accept the cost during offers, or bill the service fee annually ($12) |
+| Card fees on small charges | An account whose listings are all discounted to $0 pays only the $1 fee, and standard card fees take about a third of it | **Decided (Q1):** bill the service fee annually ($12) during $0 offers, and accept the remaining cost as a cost of acquisition |
 | Google Maps usage costs | Unexpected bills | Restricted API keys, loading maps only when needed, static maps in lists, usage alerts |
 | Thin-content SEO penalties | Pages rank poorly | Threshold for indexing dynamic pages, and schema markup that reflects each listing's tier |
 | Keycloak operations and upgrades | Security exposure if patches are missed | Pinned versions, configuration as code, a quarterly upgrade window, staging first, a login end-to-end suite |
@@ -432,6 +436,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 4.5 | Pagination | M | 3 |
 | 4.6 | Specialties | M | 2 |
 | 4.7 | Tag a listing with specialties | M | 2 |
+| 4.8 | Category requests and "notify me when found" | S | 10 |
 | 5.1 | Search | M | 4 |
 | 5.2 | Search autocomplete | S | 11 |
 | 5.3 | Map view | M | 6 |
@@ -461,7 +466,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 7.10 | Entitlement engine | M | 2 |
 | 7.11 | Listings discounted to $0 | M | 6 |
 | 7.12 | Promotions at checkout and on the pricing page | M | 6 |
-| 7.13 | Sales tax on subscriptions | TBD | TBD |
+| 7.13 | Sales tax on subscriptions | M | 5 |
 | 8.1 | Card payments | M | 5 |
 | 8.2 | Payment webhooks | M | 5 |
 | 8.3 | Dunning | S | 10 |
@@ -473,7 +478,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 9.5 | Business replies | S | 10 |
 | 10.1 | Monthly random selection | M | 8 |
 | 10.2 | Eligibility rules | S | 10 |
-| 10.3 | Assign listings to secret shoppers | M | 8 |
+| 10.3 | Secret shopper listings and rebates | M | 8 |
 | 10.4 | Confidential notifications | M | 8 |
 | 10.5 | Submit an evaluation | M | 8 |
 | 10.6 | Survey configuration | S | 10 |
@@ -525,6 +530,6 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | **Entitlement** | A feature or limit granted by a listing's tier or an account's type, such as the number of gallery photos |
 | **Secret shopper** | A randomly selected business or shopper who evaluates assigned businesses |
 | **Review unlock** | The moment when a business's reviews become public, triggered by its first secret shopper review |
-| **Service area** | The cities or radius a business serves, which may differ from its address |
+| **Service area** | The list of cities a business serves, which may differ from its address |
 | **Backend-for-frontend (BFF)** | The backend acts as the OIDC client for the browser and keeps authentication tokens on the server |
 | **Realm** | Keycloak's container for users, clients, and policies (`blackpages`) |

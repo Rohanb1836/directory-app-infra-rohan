@@ -9,11 +9,15 @@ This revision adopts **Keycloak from day one** and cancels the planned migration
 | Path | What it is | Target repository |
 |---|---|---|
 | `docs/product/mvp.md` | MVP definition | `directory-app-infra/docs/product/` |
+| `docs/product/answers-log.md` | Answers to Q1–Q15 from the product owner, how each was applied, and follow-up questions | `directory-app-infra/docs/product/` |
 | `docs/product/todo.md` | To-do list: privacy, terms, profile switching, billing intervals, annual discounts, update limits, addresses, taxes per location, cross-state listings, demand tracking by state | `directory-app-infra/docs/product/` |
 | `docs/product/backlog.md` | Product backlog: epics, user stories, acceptance criteria, sprint plan | `directory-app-infra/docs/product/` |
 | `docs/product/specs/SPEC-BILL-01-listing-tiers-and-entitlements.md` | Feature spec: account types, listing tiers, and entitlements (billing, part 1) | `directory-app-infra/docs/product/specs/` |
-| `docs/adr/` | ADR-0001 to ADR-0018, with an index and status list | `directory-app-infra/docs/adr/` |
+| `docs/reviews/ui-screen-stories-review.md` | Review of the web team's UI Screen Stories v1.1: 11 missing screens, 5 conflicts, 9 new-scope items, timing risks | `directory-app-ui/docs/product/` |
+| `docs/adr/` | ADR-0001 to ADR-0019, with an index and status list | `directory-app-infra/docs/adr/` |
 | `docs/architecture/system-overview.md` | **System architecture overview**: context, containers, 15 modules, data model, runtime flows, deployment, cross-cutting concepts, quality targets | `directory-app-infra/docs/architecture/` |
+| `docs/architecture/frontend.md` | **Frontend architecture**: rendering, data access, authentication in the UI, errors, SEO, styling, the Keycloak theme, testing, deployment | `directory-app-infra/docs/architecture/` |
+| `docs/architecture/api-guidelines.md` | **API style guide**: URLs, methods, bodies, pagination, errors, concurrency, idempotency, security, versioning, OpenAPI rules, review checklist | `directory-app-infra/docs/architecture/` |
 | `docs/architecture/identity-and-access.md` | Full identity and access design: realm, flows, backend, frontend, testing, backlog impact | `directory-app-infra/docs/architecture/` |
 | `infra/local/docker-compose.yml` | Local stack: Postgres with PostGIS (databases for the app and Keycloak), Keycloak, Mailpit, stripe-mock | `directory-app-infra/local/` |
 | `infra/local/.env.example` | Local-only settings | `directory-app-infra/local/` |

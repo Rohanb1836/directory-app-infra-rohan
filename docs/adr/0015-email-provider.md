@@ -1,6 +1,6 @@
 # ADR-0015: Postmark for transactional email, Keycloak email, and the reply relay
 
-- **Status:** Proposed (the provider needs to be confirmed; SendGrid is the alternative)
+- **Status:** Proposed (the provider needs to be confirmed; SendGrid is the alternative) **2026-10-06 (Q13):** there's no Postmark account yet. Someone needs to create and own it before Sprint 0 ends.
 - **Date:** 2026-09-27 (updated for Keycloak)
 
 ## Decision

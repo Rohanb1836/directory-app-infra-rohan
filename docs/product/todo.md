@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 1.0 |
+| **Version** | 1.1 (2026-10-06: T4 and T8 updated from the answers log) |
 | **Date** | 2026-09-30 |
 | **Owner** | Product owner |
 | **Purpose** | Items that need a decision, a spec, or new backlog stories. **None of them has been applied to the MVP definition, specs, or backlog yet.** When an item is decided, apply it everywhere it matters (HANDOFF, section 7), then tick it off here. |
@@ -18,11 +18,11 @@
 | T1 | Privacy policy | ☐ | No | Before Sprint 6 (paid beta) |
 | T2 | Terms and conditions | ☐ | No | Before Sprint 1 ends (needed at registration) |
 | T3 | Switch profile between business and shopper | ☐ | **Yes:** separate accounts (BR-PE-07), one user per business account (BR-PE-39) | Before Sprint 2 (onboarding) |
-| T4 | Quarterly and annual billing for the service fee and listings | ☐ | **Yes:** monthly billing only (BR-PE-08) | Before Sprint 4 (SPEC-BILL-02) |
+| T4 | Quarterly and annual billing for the service fee and listings | ◐ | **Yes:** monthly billing only (BR-PE-08) | Before Sprint 4 (SPEC-BILL-02) |
 | T5 | Extra discount for listings paid annually | ☐ | **Yes:** discounts can't be combined | Before Sprint 4 (SPEC-BILL-02) |
 | T6 | Limit on listing updates per month | ☐ | No (new entitlement) | Before Sprint 2 (entitlement engine) |
 | T7 | Service address and billing address on each account | ☐ | Partly: accounts currently have no addresses | Before Sprint 2 (onboarding) |
-| T8 | Multiple taxes configurable per location | ☐ | Partly: story 7.13 and Q12 assume tax is a single open question | Before Sprint 5 (billing goes live) |
+| T8 | Multiple taxes configurable per location | ◐ | Partly: story 7.13 and Q12 assume tax is a single open question | Before Sprint 5 (billing goes live) |
 | T9 | Cross-state listings only for Platinum | ☐ | **Yes:** every listing belongs to one location (ADR-0008) | Before Sprint 4 (search and SEO) |
 | T10 | Track which states requests come from, to prioritize launches | ☐ | No (extends analytics) | Before Sprint 5 (tracking) |
 
@@ -96,7 +96,9 @@
 
 ---
 
-## T4. Quarterly and annual billing for the service fee and listings ☐
+## T4. Quarterly and annual billing for the service fee and listings ◐
+
+> **Update 2026-10-06 (Q1):** the product owner supports annual billing as a way to lock in shoppers and listings. As a first step, **the service fee is billed annually ($12) while an account's listings or shopper price are discounted to $0** (story 7.6). Wider quarterly and annual billing is still to be decided here.
 
 **What:** members can pay for the service fee and their listings **monthly, quarterly, or annually**.
 
@@ -181,7 +183,9 @@
 
 ---
 
-## T8. Multiple taxes configurable per location ☐
+## T8. Multiple taxes configurable per location ◐
+
+> **Update 2026-10-06 (Q12, BPM sales tax policy):** Arizona has **no state sales tax on advertising**, but **some cities charge city tax, including Phoenix**. Subscribers in other states count towards each state's **registration threshold** (some are as low as 200 sales). Story 7.13 is now a **Must in Sprint 5**. **Still to decide:** configured rates or Stripe Tax. Stripe Tax can also help monitor state thresholds, which is worth checking in Stripe's documentation.
 
 **What:** each location can have several taxes. Arizona, for example, has a state transaction privilege tax (TPT) and city taxes.
 
@@ -223,6 +227,8 @@
 ---
 
 ## T10. Track which states requests come from, to prioritize launches ☐
+
+> **Note 2026-10-06 (Q15):** the product owner suggested a **threshold for adding new cities** within a state, based on responses from each city. The same demand data can drive this.
 
 **What:** measure demand by state, so the next locations to go live can be chosen with data.
 

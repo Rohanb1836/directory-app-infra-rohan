@@ -1,6 +1,6 @@
 # ADR-0009: Payments use Stripe Billing
 
-- **Status:** Proposed (the product owner needs to confirm Stripe and who owns the account)
+- **Status:** Accepted (2026-10-06: the product owner owns the Stripe account, per the answer to Q13. Whether to also offer PayPal is an open question.)
 - **Date:** 2026-09-27 (amended 2026-09-30: billing items follow ADR-0017, with account types and a tier per listing; discounts never apply to the service fee)
 
 ## Decision

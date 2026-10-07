@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Version** | 1.1 (2026-09-30: backend platform is Spring Boot 4.1 on Java 25, ADR-0018) |
+| **Version** | 1.3 (2026-10-06: service areas are lists of cities, Q5. v1.2, 2026-09-30: frontend platform and API conventions now in the Frontend Architecture and API Style Guide. v1.1: backend on Spring Boot 4.1 and Java 25.) |
 | **Date** | 2026-09-30 |
 | **Status** | Draft for review by both tech leads before Sprint 1 |
 | **Owners** | Tech leads for `directory-app-svc` and `directory-app-ui` |
-| **Related** | ADR-0001 to ADR-0018, Identity and Access Design v2.2, SPEC-BILL-01 v0.5, MVP Definition v1.9, Product Backlog v1.5 |
+| **Related** | ADR-0001 to ADR-0019, Frontend Architecture v1.0, API Style Guide v1.0, Identity and Access Design v2.2, SPEC-BILL-01 v0.5, MVP Definition v1.9, Product Backlog v1.5 |
 
 This document gives the **big picture**: how the system fits together, what each part owns, and the rules that apply everywhere. It links to the ADRs for *why* each decision was made, and to the specs for detailed business rules. Diagrams are written in Mermaid so they're reviewed and versioned like code.
 
@@ -242,6 +242,8 @@ REST controllers implement interfaces generated from `contract/openapi.yaml` (AD
 
 ## 4. Frontend structure
 
+**The full design is in the Frontend Architecture** (`docs/architecture/frontend.md`): Next.js 16.3, React 19, Node.js 24 (ADR-0019). This section is a summary.
+
 ```
 directory-app-ui/
 ├── src/app/
@@ -253,7 +255,7 @@ directory-app-ui/
 │   ├── (member)/app/…            # business owner and shopper dashboards (client-rendered)
 │   ├── (admin)/admin/…           # admin console (client-rendered, staff with MFA only)
 │   ├── onboarding/…
-│   └── middleware.ts             # route protection using /api/auth/me
+│   └── proxy.ts                  # Next.js 16 request proxy: route protection (see the Frontend Architecture)
 ├── src/features/                 # all logic lives here so unit tests can reach it
 ├── src/components/ui/            # design system
 ├── src/lib/api/generated/        # typed client from @blackpages/api-client
@@ -389,15 +391,14 @@ erDiagram
     }
     service_area {
         uuid listing_id FK
-        text kind
-        numeric radius_km
-        geography geom
+        boolean online_only
+        boolean hide_from_map
     }
 ```
 
 **Key indexes:**
 - `listing (location_id, status, tier_rank DESC, sort_name)` serves directory ordering (SPEC-BILL-01, BR-PE-30).
-- GiST indexes on `listing.geo`, `city.center`, and `service_area.geom` serve map, radius, and service-area queries.
+- GiST indexes on `listing.geo` and `city.center` serve map and distance queries. Service areas are lists of cities (`service_area_city`), matched by city ID.
 - GIN indexes on `search_vector`, and trigram GIN on `sort_name`, serve search.
 
 `tier` and `tier_rank` are **copies** kept in step by `ListingEntitlementsChanged`. The source of truth is the listing's subscription item.
@@ -586,7 +587,7 @@ sequenceDiagram
         W-->>CF: HTML with metadata and JSON-LD
         CF-->>B: HTML
     end
-    B->>A: POST /api/events (page_view, async, after consent)
+    B->>A: POST /api/public/events (page_view, async, after consent)
 ```
 
 Pages are regenerated when `ListingPublished`, `ListingUpdated`, `ListingEntitlementsChanged`, or `TaxonomyChanged` affect them.
@@ -831,6 +832,8 @@ All scheduled jobs use `@Scheduled` with **ShedLock on Postgres**, so each runs 
 | Expire entitlement overrides | Hourly | SPEC-BILL-01, BR-PE-14 |
 
 ### 8.6 API conventions (ADR-0012)
+
+**The full rules are in the API Style Guide** (`docs/architecture/api-guidelines.md`). This section is a summary.
 - **Contract-first:** `contract/openapi.yaml` is changed and approved by both teams before implementation.
 - **Paths:**
   - `/api/public/*` needs no authentication.

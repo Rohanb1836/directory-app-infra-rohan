@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Version** | 1.5 |
+| **Version** | 1.6 |
 | **Date** | 2026-09-30 |
-| **Status** | Ready for sprint planning, subject to the open questions in section 7. **v1.1:** Silver, Gold, and Platinum are now listing tiers, not account plans. **v1.2:** the default Silver listing is charged and discounted like any other listing, and owners can upgrade or downgrade every listing. **v1.3:** only the owner changes tiers, and each business account has one user. **v1.4:** shopper accounts always have a price, discounts apply to it, and the $1 fee is additional. **v1.5:** backend on Spring Boot 4.1 and Java 25 (ADR-0018), with a new compatibility spike (0.7). |
-| **Companion documents** | MVP Definition v1.9, SPEC-BILL-01 v0.5, ADR-0018 (`docs/product/mvp.md`), ADR-0001 to ADR-0016, Identity and Access Design v2.0 |
+| **Status** | Ready for sprint planning, subject to the open questions in section 7. **v1.1:** Silver, Gold, and Platinum are now listing tiers, not account plans. **v1.2:** the default Silver listing is charged and discounted like any other listing, and owners can upgrade or downgrade every listing. **v1.3:** only the owner changes tiers, and each business account has one user. **v1.4:** shopper accounts always have a price, discounts apply to it, and the $1 fee is additional. **v1.5:** backend on Spring Boot 4.1 and Java 25 (ADR-0018), with a new compatibility spike (0.7). **v1.6:** answers to Q1–Q15 applied (see `docs/product/answers-log.md`). |
+| **Companion documents** | MVP Definition v1.10, SPEC-BILL-01 v0.6, ADR-0018 (`docs/product/mvp.md`), ADR-0001 to ADR-0016, Identity and Access Design v2.0 |
 | **Repositories** | `directory-app-svc` (backend), `directory-app-ui` (frontend), `directory-app-infra` (infrastructure) |
 
 ---
@@ -41,10 +41,10 @@
 | [E1](#e1) | Multi-Location Foundation | 5 | 23 | 0 | 0 | 23 |
 | [E2](#e2) | Identity and Accounts | 19 | 69 | 6 | 0 | 75 |
 | [E3](#e3) | Listing Management and Rich Profiles | 10 | 38 | 0 | 0 | 38 |
-| [E4](#e4) | Categories and Browsing | 7 | 23 | 0 | 0 | 23 |
-| [E5](#e5) | Search and Maps | 7 | 33 | 3 | 0 | 36 |
+| [E4](#e4) | Categories and Browsing | 8 | 23 | 5 | 0 | 28 |
+| [E5](#e5) | Search and Maps | 7 | 31 | 3 | 0 | 34 |
 | [E6](#e6) | SEO Tools (Basic MVP) | 11 | 30 | 3 | 0 | 33 |
-| [E7](#e7) | Accounts, Tiers, and Pricing | 12 | 41 | 3 | 5 | 49 |
+| [E7](#e7) | Accounts, Tiers, and Pricing | 12 | 49 | 3 | 0 | 52 |
 | [E8](#e8) | Payment Processing | 4 | 13 | 6 | 0 | 19 |
 | [E9](#e9) | Reviews | 5 | 15 | 3 | 0 | 18 |
 | [E10](#e10) | Secret Shopper Program | 7 | 21 | 13 | 0 | 34 |
@@ -54,7 +54,7 @@
 | [E14](#e14) | Administration and Site Operations | 6 | 16 | 6 | 0 | 22 |
 | [E15](#e15) | Non-Functional Requirements | 5 | 17 | 0 | 0 | 17 |
 | [E16](#e16) | Messaging | 8 | 22 | 6 | 0 | 28 |
-| | **Total** | **125** | **426** | **59** | **5** | **490** |
+| | **Total** | **126** | **432** | **64** | **0** | **496** |
 
 ## 3. Sprint plan
 
@@ -67,12 +67,12 @@ Sprints are two weeks long. The plan runs about **24 weeks** from Sprint 0 to la
 | **2** | Listings, taxonomy, and entitlements | 1.2, 1.5, 2.2, 2.17, 2.20, 3.1, 3.4, 3.5, 4.1, 4.6, 4.7, 7.10, 13.2 | 45 |  |
 | **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 | 43 |  |
 | **4** | SEO, search, and observability | 5.1, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8a, 15.4 | 46 | **R1: internal alpha** in Arizona |
-| **5** | Monetization core | 7.1, 7.3, 7.6, 8.1, 8.2, 11.1, 13.1, 13.3 | 39 |  |
-| **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3 | 44 | **R2: paid beta** with Arizona businesses |
+| **5** | Monetization core | 7.1, 7.3, 7.6, 7.13, 8.1, 8.2, 11.1, 13.1, 13.3 | 47 |  |
+| **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3 | 42 | **R2: paid beta** with Arizona businesses |
 | **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6 | 42 |  |
 | **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5 | 38 |  |
 | **9** | Administration and analytics | 2.5, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8 | 39 |  |
-| **10** | Should-have items | 2.21, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | 51 | Can move after the MVP (saves about 2 weeks) |
+| **10** | Should-have items | 2.21, 4.8, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | 56 | Can move after the MVP (saves about 2 weeks) |
 | **11** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | 17 | **R3: public MVP launch in Arizona** |
 
 Story 2.17 (the Keycloak theme) spans Sprints 1 and 2, so its points are split between them. Story 7.13 (sales tax) isn't scheduled until Q12 is decided.
@@ -211,7 +211,7 @@ As an **admin or site operator**, I want to manage the cities in a location so t
 **Acceptance criteria**
 - Cities can be added, edited, and deactivated within a location.
 - City slugs are unique across all locations (for example, `springfield-mo`).
-- A city inherits its location's time zone and can override it (for example, `America/Denver` for Navajo Nation communities).
+- A city inherits its location's time zone. (Answer to Q15: tribal-land time zones don't need special handling, so there's no override in the MVP.)
 
 *Priority:* M · *Points:* 3 · *Sprint:* 2 · *Team:* svc, ui
 
@@ -241,10 +241,10 @@ As the **product owner**, I want Arizona set up as the first active location so 
 
 **Acceptance criteria**
 - A Flyway data migration creates location **Arizona (AZ)** with time zone `America/Phoenix`.
-- The confirmed launch cities are seeded (proposed: Phoenix, Tucson, Mesa, Chandler, Scottsdale, Gilbert, Glendale, Tempe, Peoria, Flagstaff).
+- These **11 launch cities** are seeded (answer to Q15): Phoenix, Tucson, Mesa, Glendale, Scottsdale, Tempe, Goodyear, Gilbert, Chandler, Peoria, Surprise.
 - The other location slots remain in draft.
 
-*Priority:* M · *Points:* 2 · *Sprint:* 2 · *Team:* svc · *Depends on:* Q15
+*Priority:* M · *Points:* 2 · *Sprint:* 2 · *Team:* svc
 
 ---
 
@@ -563,10 +563,10 @@ As a **business**, I want to add a description, hours, year established, and pay
 As a **business**, I want a photo gallery on each listing so that I can show my work.
 
 **Acceptance criteria**
-- The limit is set by the listing's tier (indicative: Silver 3, Gold 10, Platinum 25).
+- The limit is set by the listing's tier: **Silver 1, Gold 3, Platinum 6** (answer to Q6; SPEC-BILL-01, section 4.2).
 - Photos can be reordered, and each has alt text.
 
-*Priority:* M · *Points:* 5 · *Sprint:* 7 · *Team:* svc, ui · *Depends on:* Q6
+*Priority:* M · *Points:* 5 · *Sprint:* 7 · *Team:* svc, ui
 
 #### 3.10 Rich profile page
 As a **visitor**, I want a complete profile page so that I can decide whether to contact a business.
@@ -594,6 +594,7 @@ As a **visitor**, I want a complete profile page so that I can decide whether to
 | 4.5 | Pagination | M | 2 | 3 | ui, svc |
 | 4.6 | Specialties | M | 3 | 2 | svc, ui |
 | 4.7 | Tag a listing with specialties | M | 2 | 2 | svc, ui |
+| 4.8 | Category requests and "notify me when found" | S | 5 | 10 | svc, ui |
 
 #### 4.1 Category taxonomy
 As an **admin**, I want to manage categories and subcategories so that listings are organized consistently.
@@ -627,6 +628,7 @@ As a **visitor**, I want an index of all categories so that I can browse.
 **Acceptance criteria**
 - Categories are listed alphabetically with a count of active listings.
 - Empty categories are hidden.
+- **Silver listings aren't featured on the directory landing page**, which leaves room for Gold and Platinum listings (answer to Q2; SPEC-BILL-01 `listing.landing_page`). Silver listings still appear in category results and on the map.
 
 *Priority:* M · *Points:* 3 · *Sprint:* 3 · *Team:* ui, svc
 
@@ -656,6 +658,17 @@ As a **business**, I want to tag each listing with specialties so that it appear
 
 *Priority:* M · *Points:* 2 · *Sprint:* 2 · *Team:* svc, ui · *Depends on:* Q6
 
+#### 4.8 Category requests and "notify me when found"
+As a **visitor**, I want to tell BlackPages what I couldn't find and be told when it's added so that I come back.
+
+**Acceptance criteria**
+- When a search or category browse finds nothing, the visitor can type what they were looking for and leave an email address (with consent).
+- Requests are grouped and counted for admins, who can create the category from a request.
+- When a matching category or listing appears, everyone who asked is emailed (answer to Q4).
+- This replaces any need for live chat, which isn't planned (answer to Q4).
+
+*Priority:* S · *Points:* 5 · *Sprint:* 10 · *Team:* svc, ui
+
 ---
 
 <a id="e5"></a>
@@ -670,7 +683,7 @@ As a **business**, I want to tag each listing with specialties so that it appear
 | 5.2 | Search autocomplete | S | 3 | 11 | ui, svc |
 | 5.3 | Map view | M | 5 | 6 | ui, svc |
 | 5.5 | Search filters | M | 8 | 4 | svc, ui |
-| 5.7 | Service area | M | 5 | 6 | svc, ui |
+| 5.7 | Service area | M | 3 | 6 | svc, ui |
 | 5.8 | Search by service area | M | 5 | 7 | svc, ui |
 | 5.9 | Google Maps cost controls | M | 2 | 7 | ui, infra |
 
@@ -698,7 +711,8 @@ As a **visitor**, I want to see listings on a map so that I can find businesses 
 
 **Acceptance criteria**
 - Users can switch between the list and a Google Maps view.
-- Pins are clustered and styled by tier, with an info window for each.
+- **Listings of every tier appear on the map** for their category, styled by tier, with clustered pins and an info window for each.
+- **Online-only listings, and listings whose owner chose "don't show on map" in their address options, aren't shown** (answer to Q2).
 - A "search this area" button re-queries when the map moves.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* ui, svc
@@ -716,11 +730,11 @@ As a **visitor**, I want filters so that I can narrow results.
 As a **business**, I want to define where I work so that customers know whether I serve them.
 
 **Acceptance criteria**
-- The service area is a list of cities or a radius around the base address.
-- It's drawn on the profile map.
-- The street address can be hidden.
+- The service area is a **list of cities** (answer to Q5). There's no radius or polygon option in the MVP.
+- It's shown on the profile.
+- The street address can be hidden, and the listing can be marked **online-only** (no address, not shown on the map).
 
-*Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* svc, ui · *Depends on:* Q5
+*Priority:* M · *Points:* 3 · *Sprint:* 6 · *Team:* svc, ui
 
 #### 5.8 Search by service area
 As a **visitor**, I want to find businesses that serve my city even if they're based elsewhere.
@@ -881,7 +895,7 @@ As the **marketing team**, I want Search Console set up so that we can monitor i
 | 7.10 | Entitlement engine | M | 5 | 2 | svc |
 | 7.11 | Listings discounted to $0 | M | 3 | 6 | svc |
 | 7.12 | Promotions at checkout and on the pricing page | M | 2 | 6 | ui |
-| 7.13 | Sales tax on subscriptions | TBD | 5 | TBD | svc |
+| 7.13 | Sales tax on subscriptions | M | 8 | 5 | svc, ui |
 
 #### 7.1 Configure listing tiers and account pricing
 As an **admin**, I want to configure listing tiers and account pricing so that prices and features can change without code changes.
@@ -941,13 +955,14 @@ As a **business**, I want all my listing charges on one invoice so that billing 
 *Priority:* M · *Points:* 5 · *Sprint:* 6 · *Team:* svc
 
 #### 7.6 $1 monthly service fee
-As the **platform**, I want the $1 monthly service fee charged to every business and shopper account so that it's collected consistently.
+As the **platform**, I want the $1 service fee charged to every business and shopper account so that it's collected consistently.
 
 **Acceptance criteria**
-- The fee is a recurring item on every invoice, once per account whatever the number of listings.
+- The fee is charged once per account, whatever the number of listings.
 - **Discounts can never apply to it**, so every account pays at least $1 a month.
+- **While an account's listings or shopper price are discounted to $0, the service fee is billed annually ($12)** (answer to Q1). The exact mechanics are in SPEC-BILL-02.
 
-*Priority:* M · *Points:* 3 · *Sprint:* 5 · *Team:* svc · *Depends on:* Q1, OQ-6
+*Priority:* M · *Points:* 3 · *Sprint:* 5 · *Team:* svc · *Depends on:* OQ-6
 
 #### 7.7 Lapsed accounts
 As the **platform**, I want unpaid accounts handled automatically so that unpaid listings don't stay live.
@@ -1000,10 +1015,11 @@ As a **visitor**, I want to see promotions clearly so that I understand what I'l
 As the **platform**, I want tax applied where required so that we comply with state and city tax rules.
 
 **Acceptance criteria**
-- Pending a tax adviser's review of Arizona's transaction privilege tax (TPT).
-- If tax applies, it's calculated at checkout (for example with Stripe Tax) and shown on invoices.
+- **Arizona:** no state sales tax on advertising, but **some cities charge city tax, including Phoenix** (BPM sales tax policy, answer to Q12). City tax is calculated from the billing address.
+- **Other states:** sales to subscribers in each state are tracked against that state's registration threshold (some are as low as 200 sales), and admins are alerted before a threshold is reached.
+- Tax is shown at checkout and on invoices. The approach (configured rates or Stripe Tax) is decided in to-do T8.
 
-*Priority:* TBD · *Points:* 5 · *Sprint:* TBD · *Team:* svc · *Depends on:* Q12
+*Priority:* M · *Points:* 8 · *Sprint:* 5 · *Team:* svc, ui · *Depends on:* T8
 
 ---
 
@@ -1127,7 +1143,7 @@ As a **business**, I want to reply publicly to reviews so that I can address fee
 |---|---|---|---|---|---|
 | 10.1 | Monthly random selection | M | 8 | 8 | svc |
 | 10.2 | Eligibility rules | S | 3 | 10 | svc |
-| 10.3 | Assign listings to secret shoppers | M | 5 | 8 | svc |
+| 10.3 | Secret shopper listings and rebates | M | 5 | 8 | svc, ui |
 | 10.4 | Confidential notifications | M | 3 | 8 | svc, ui |
 | 10.5 | Submit an evaluation | M | 5 | 8 | svc, ui |
 | 10.6 | Survey configuration | S | 5 | 10 | svc, ui |
@@ -1139,7 +1155,7 @@ As the **platform**, I want 1 in 100 active business accounts and 1 in 100 activ
 **Acceptance criteria**
 - The job runs at the start of the 1st of the month **in the location's time zone** (`America/Phoenix` for Arizona).
 - At least one of each is selected when the pool isn't empty.
-- Only accounts in good standing are eligible. A business account counts once, however many listings it has.
+- Only accounts in good standing are eligible. A business account counts once, however many listings it has. A business can take part as a secret shopper (B2B), as confirmed in the answer to Q11.
 - The random seed and selections are logged, and a location can't be selected twice in a month.
 
 *Priority:* M · *Points:* 8 · *Sprint:* 8 · *Team:* svc · *Depends on:* Q18
@@ -1152,14 +1168,16 @@ As the **platform**, I want eligibility rules applied so that selection isn't bi
 
 *Priority:* S · *Points:* 3 · *Sprint:* 10 · *Team:* svc
 
-#### 10.3 Assign listings to secret shoppers
-As the **platform**, I want each secret shopper assigned listings to evaluate so that coverage is spread out.
+#### 10.3 Secret shopper listings and rebates
+As a **selected secret shopper**, I want to evaluate up to two listings and receive their rebate so that taking part is worthwhile.
 
 **Acceptance criteria**
-- A secret shopper is never assigned a listing owned by their own business account, or a direct competitor in the same category.
+- Each secret shopper evaluates, and can receive a rebate from, **no more than 2 listings** (answer to Q10).
+- **The incentive is a rebate offered by the listing**, described in the listing's secret-shopper offer. Whether the shopper **chooses** listings from those offers, or the platform **assigns** them, is to be decided in SPEC-REV-01.
+- A secret shopper never evaluates a listing owned by their own business account, or a direct competitor in the same category (answer to Q11).
 - Listings without a secret shopper review yet are prioritized.
 
-*Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc · *Depends on:* Q10, Q11
+*Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc, ui · *Depends on:* Q10
 
 #### 10.4 Confidential notifications
 As a **selected secret shopper**, I want to be told about my assignment privately so that I know what to do.
@@ -1175,6 +1193,7 @@ As a **secret shopper**, I want to submit my review and survey so that my evalua
 
 **Acceptance criteria**
 - The survey is required. The MVP uses a default question set seeded by migration.
+- **A business acting as a secret shopper must make the purchase in the listed company's name** (answer to Q11).
 - Submitting unlocks reviews for that listing (9.2).
 
 *Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc, ui
@@ -1589,6 +1608,8 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | 3.3 | Branch locations (add-ons billed on the account's plan) | **Rewritten (v1.1)** as "Add more listings" | Any number of listings, each with its own tier |
 | 7.1, 7.3, 7.4, 7.5, 7.7, 7.10, 7.11 | Plan configuration, plan signup, plan changes, add-on billing, lapsed subscriptions, plan entitlements, plans discounted to $0 | **Rewritten (v1.1)** | Now cover listing tiers, account pricing, per-listing tier changes, one invoice per account, and per-listing and per-account entitlements |
 | 2.2, 3.2, 3.9, 4.7, 6.8b, 9.1, 10.1, 10.3, 12.1, 12.2, 13.3, 14.3, 16.6 | Various | **Updated (v1.1)** | Wording changed from plans to listing tiers and account types |
+| 1.2, 1.5, 3.9, 4.4, 5.3, 5.7, 7.6, 7.13, 10.1, 10.3, 10.5 | Various | **Updated (v1.6)** | Answers to Q1–Q15: launch cities, photo limits, Silver not on the landing page, map rules, service area as a list of cities (5.7 reduced from 5 to 3 points), annual fee during $0 offers, city tax (7.13 now a Must in Sprint 5, 8 points), secret shopper rebates and B2B rules |
+| 4.8 | Category requests and "notify me when found" | **Added (v1.6)**, Should, Sprint 10 | From the answer to Q4 |
 | 0.2, 0.3 | Repository scaffolding, CI pipelines | **Updated (v1.5)** | Backend on Spring Boot 4.1 and Java 25. New story 0.7 checks library compatibility. |
 | 7.1, 7.3 | Shopper account price | **Updated (v1.4)** | The shopper account always has a price, discounts apply to it, and the $1 service fee is additional |
 | 2.7 | Business team invites | **Moved to post-MVP (v1.3)** as P.11 | Each business account has exactly one user, its owner, for now |
@@ -1608,16 +1629,17 @@ As a **business**, I want messages counted as leads so that I can see the value 
 
 | Question | Summary | Stories affected | Needed by |
 |---|---|---|---|
-| Q1 | Card fees on $1 invoices, which happen when all of an account's listings are discounted to $0, or when a shopper's account price is discounted to $0: accept the cost, or bill the service fee annually ($12)? | 7.6 | Before Sprint 5 |
-| Q5 | Are a list of cities or a radius enough for service areas? | 5.7 | Before Sprint 6 |
-| Q6 | How many specialties and gallery photos should each listing tier allow? | 3.9, 4.7 | Before Sprint 2 |
-| Q8 | URL pattern for specialty pages, and whether the state appears in URLs. | 6.6 | Before Sprint 4 |
-| Q9 | Is 3 listings the right threshold for indexing a dynamic page? | 6.7 | Before Sprint 4 |
-| Q10 | Secret shopper incentives, and how many businesses each one evaluates. | 10.3 | Before Sprint 8 |
-| Q11 | Can a secret shopper who is a business review a competitor in the same category? (Assumed: no.) | 10.3 | Before Sprint 8 |
-| Q12 | Does Arizona's transaction privilege tax (TPT) apply to subscriptions? | 7.13 | Before billing goes live |
+| Q1 | **Answered:** card fees on $1 invoices are accepted as an acquisition cost, and the service fee is billed annually ($12) while an account's listings or shopper price are discounted to $0. Details go in SPEC-BILL-02. | — | — |
+| Q5 | **Answered:** a list of cities is enough. No radius or polygons in the MVP. | — | — |
+| Q6 | **Partly answered:** photos are Silver 1, Gold 3, Platinum 6. **Still open:** the number of specialties per tier (the product owner asked what specialties are, so this needs a follow-up). | 4.7 | Before Sprint 2 |
+| Q8 | **Partly answered:** the state doesn't appear in URLs. **Still open:** whether specialty pages nest under the category (needs a follow-up with an example). | 6.6 | Before Sprint 4 |
+| Q9 | **Answered:** pages with too few listings get noindex tags, keeping the structure for future growth. The threshold stays at 3 listings. | 6.7 | — |
+| Q10 | **Answered, design needed:** the incentive is a rebate offered by the listing, and a shopper can get a rebate from no more than 2 listings. Whether shoppers choose listings or are assigned them is decided in SPEC-REV-01. | 10.3 | Before Sprint 8 |
+| Q11 | **Answered:** confirmed. A business can be a secret shopper (B2B), must buy in the listed company's name, and never evaluates a competitor in the same category. | — | — |
+| Q12 | **Answered:** no Arizona state tax on advertising, but some cities (including Phoenix) charge city tax, and other states' sales thresholds must be tracked. The approach is decided in to-do T8. | — | — |
 | Q14 | Staff MFA: default conditional OTP with reconciliation, or a custom flow keyed on the staff role? | 2.21 | Before Sprint 10 |
-| Q15 | Final list of Arizona launch cities. | 1.5 | Before Sprint 2 |
+| Q15 | **Answered:** 11 launch cities (Phoenix, Tucson, Mesa, Glendale, Scottsdale, Tempe, Goodyear, Gilbert, Chandler, Peoria, Surprise). No special handling for tribal-land time zones. | — | — |
 | Q18 | Secret shopper selection: 1 in 100 business **accounts** (proposed, so multi-listing accounts aren't favored) or 1 in 100 **listings** (the original brief's wording)? | 10.1 | Before Sprint 8 |
 | OQ-3 | Tier prices and the shopper account price (SPEC-BILL-01). | 7.1 | Before Sprint 5 |
 | OQ-6 | Does a person with both account types pay two service fees? (Proposed: yes.) | 7.6 | Before Sprint 5 |
+| T8 | Tax approach: configured city and state rates, or Stripe Tax (decide before Sprint 5). | 7.13 | Before Sprint 5 |

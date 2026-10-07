@@ -1,6 +1,6 @@
 # ADR-0014: Hosting on AWS, with ECS Fargate, RDS, and CloudFront
 
-- **Status:** Proposed (the cloud provider needs to be confirmed)
+- **Status:** Proposed (the cloud provider needs to be confirmed) **2026-10-06 (Q13):** there's no AWS account yet. Someone needs to create and own it before Sprint 0 ends.
 - **Date:** 2026-09-27 (updated to include Keycloak)
 
 ## Decision

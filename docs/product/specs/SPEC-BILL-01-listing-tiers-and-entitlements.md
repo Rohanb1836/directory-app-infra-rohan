@@ -5,16 +5,17 @@
 | | |
 |---|---|
 | **Spec ID** | SPEC-BILL-01 |
-| **Version** | 0.5 (draft) |
-| **Date** | 2026-09-30 |
+| **Version** | 0.6 (draft) |
+| **Date** | 2026-10-06 |
 | **Status** | Draft for review. It needs product owner approval **before Sprint 1 refinement ends**, because the entitlement engine (7.10) starts in Sprint 2. |
 | **Change from v0.1** | Silver, Gold, and Platinum are no longer account plans. They are **tiers of an individual listing**. There are two **account types**, business and shopper. A business account can add any number of listings, each with its own tier, and **gets one Silver listing by default**. |
 | **Change from v0.2** | The **default Silver listing is charged the Silver price and discounted like any other listing**. There's no longer a free allowance. The account owner can **upgrade or downgrade every listing**, including the default one. |
 | **Change from v0.3** | **Only the account owner can change tiers**, and **each business account has exactly one user, its owner**, for now. The team-member entitlement and editor role are removed. |
+| **Change from v0.5** | Answers to Q2 and Q6 (2026-09-30): gallery photos are **Silver 1, Gold 3, Platinum 6**, and **Silver listings aren't featured on the directory landing page** (new key `listing.landing_page`). |
 | **Change from v0.4** | The **shopper account always has a price**. Discounts apply to it, and the $1 service fee is charged in addition. |
 | **Owner** | Product owner |
 | **Reviewers** | Tech lead for `directory-app-svc`, tech lead for `directory-app-ui` |
-| **Related** | MVP Definition v1.8 (sections 4 and 5), Product Backlog v1.4 (E7), ADR-0007, ADR-0009, ADR-0017 |
+| **Related** | MVP Definition v1.10 (sections 4 and 5), Product Backlog v1.6 (E7), ADR-0007, ADR-0009, ADR-0017 |
 | **Part 2** | SPEC-BILL-02, Billing and Discounts: checkout, proration, discount mechanics, lapses, invoices, tax. Due by the end of Sprint 4. |
 
 ---
@@ -114,6 +115,7 @@ Each key gets its value from one of two sources:
 | `listing.links.website` | Yes/no | Listing tier | Write, read, schema `sameAs` | 3.2, 6.8b |
 | `listing.links.social` | Yes/no | Listing tier | Write, read, schema `sameAs` | 3.2, 6.8b |
 | `listing.placement` | Choice: STANDARD, FEATURED, PREMIUM | Listing tier | Read (directory and search ordering) | 4.2, 5.1 |
+| `listing.landing_page` | Yes/no | Listing tier | Read (eligible for the directory landing page's featured areas) | 4.4 |
 | `listing.service_area` | Yes/no | Listing tier | Write, read, search matching | 5.7, 5.8 |
 | `listing.messaging.receive` | Yes/no | Listing tier | Read (Contact button), write (accepting messages) | 16.1, 16.6 |
 | `listing.analytics.level` | Choice: BASIC, STANDARD, ADVANCED | Listing tier | Read (that listing's dashboard widgets and API fields) | 12.1 |
@@ -137,11 +139,12 @@ Values marked *indicative* are proposals waiting on MVP question Q6 (see OQ-2).
 | `listing.logo` | Yes | Yes | Yes |
 | `listing.cover_image` | Yes | Yes | Yes |
 | `listing.description.max_chars` *(indicative)* | 500 | 1,500 | 3,000 |
-| `listing.gallery.max_photos` *(indicative)* | 3 | 10 | 25 |
+| `listing.gallery.max_photos` | **1** | **3** | **6** |
 | `listing.specialties.max` *(indicative)* | 3 | 5 | 10 |
 | `listing.links.website` | No | No | **Yes** |
 | `listing.links.social` | No | No | **Yes** |
 | `listing.placement` | STANDARD | **FEATURED** | **PREMIUM** |
+| `listing.landing_page` | **No** | Yes | Yes |
 | `listing.service_area` | Yes | Yes | Yes |
 | `listing.messaging.receive` | Yes | Yes | Yes |
 | `listing.analytics.level` | BASIC | STANDARD | ADVANCED |
@@ -244,7 +247,7 @@ A listing with a **tier downgrade scheduled** keeps its current (higher) tier's 
 ## 8. What members see
 
 - **BR-PE-33.** Locked features are **shown, not hidden**, with a short explanation and a prompt to move that listing up a tier, for example "Add your website: available on Platinum listings". Admins and operators don't see these prompts.
-- **BR-PE-34.** When a limit is reached, the owner sees current usage and the limit for that listing (for example, "10 of 10 photos"), plus the next tier up that gives more.
+- **BR-PE-34.** When a limit is reached, the owner sees current usage and the limit for that listing (for example, "3 of 3 photos"), plus the next tier up that gives more.
 - **BR-PE-35.** The business dashboard shows **every listing with its tier**, its monthly price, any discount, and any scheduled tier change, with **Upgrade** and **Downgrade** actions on each listing for the owner.
 - **BR-PE-36.** The pricing page (13.3) and the tier choice in onboarding (2.2) and when adding a listing (3.3) are generated from the same configuration, so they always match the entitlement engine.
 
@@ -291,7 +294,7 @@ A listing with a **tier downgrade scheduled** keeps its current (higher) tier's 
 |---|---|---|
 | `GET /api/public/pricing` | Public | Listing tiers with current prices and their visible entitlements, the shopper account price, and the service fee. Used by the pricing page and onboarding. |
 | `GET /api/auth/me` *(existing)* | Authenticated | Includes the account type, its account entitlements, and a summary of each listing's tier |
-| `GET /api/business-accounts/{id}/listings/entitlements` | Owner, staff | Each listing's tier, entitlements, and usage, for example `{ "listingId": "…", "tier": "GOLD", "listing.gallery.max_photos": { "limit": 10, "used": 7 } }`, plus the account's entitlements |
+| `GET /api/business-accounts/{id}/listings/entitlements` | Owner, staff | Each listing's tier, entitlements, and usage, for example `{ "listingId": "…", "tier": "GOLD", "listing.gallery.max_photos": { "limit": 3, "used": 2 } }`, plus the account's entitlements |
 | `POST /api/business-accounts/{id}/listings` | Owner | Adds a listing at a chosen tier (BR-PE-17) |
 | `POST /api/listings/{id}/tier-change` | Owner | Upgrades immediately or schedules a downgrade, for any listing including the default one (sections 6.2 to 6.4) |
 | `DELETE /api/listings/{id}/tier-change` | Owner | Cancels a scheduled downgrade (BR-PE-22) |
@@ -308,8 +311,8 @@ A listing with a **tier downgrade scheduled** keeps its current (higher) tier's 
   "code": "ENTITLEMENT_LIMIT_REACHED",
   "listingId": "4f7c…",
   "entitlement": "listing.gallery.max_photos",
-  "limit": 10,
-  "used": 10,
+  "limit": 3,
+  "used": 3,
   "upgradeTo": "PLATINUM"
 }
 ```
@@ -325,19 +328,19 @@ These become the test cases for story 7.10 and the related stories.
 | # | Given | When | Then |
 |---|---|---|---|
 | AS-1 | A new business completes onboarding | The account is created | It has one listing, at Silver, marked as the default listing. The first invoice is the $1 service fee plus the Silver price. |
-| AS-2 | A Gold listing with 10 photos | The owner uploads an 11th | 422 `ENTITLEMENT_LIMIT_REACHED`, `upgradeTo: PLATINUM` |
+| AS-2 | A Gold listing with 3 photos | The owner uploads a 4th | 422 `ENTITLEMENT_LIMIT_REACHED`, `upgradeTo: PLATINUM` |
 | AS-3 | A Silver listing | The owner saves a website URL | 403 `ENTITLEMENT_NOT_INCLUDED`, and the UI shows "Available on Platinum listings" |
 | AS-4 | A business account with a Platinum listing and a Silver listing, in the same category and city as another business's Gold listing | A visitor opens the category page | Platinum, then Gold, then Silver, alphabetical within each tier. Each listing shows its own badge. |
 | AS-5 | A business with only its default Silver listing | The owner adds a second listing at Gold | The Gold price is charged, prorated. The default listing is still charged the Silver price. |
 | AS-6 | A business's default Silver listing | The owner upgrades it to Gold | The upgrade applies immediately. The prorated difference between Silver and Gold is charged, then the full Gold price from the next period. |
 | AS-7 | That listing is now Gold | The owner downgrades it to Silver | The downgrade is scheduled for the end of the period. The listing keeps Gold features and price until then, and the owner can cancel the downgrade. |
-| AS-8 | A Platinum listing with 20 photos is scheduled to move down to Gold | Seven days before the period ends | The owner is emailed that 10 photos on that listing will be hidden |
-| AS-9 | That downgrade takes effect | A visitor views the listing | 10 photos are visible. The owner sees 10 more marked "hidden". The website link isn't shown or included in the schema. Other listings on the account are unaffected. |
-| AS-10 | That listing is moved back up to Platinum | Payment succeeds | All 20 photos and the links are visible again, and the listing is ordered as Platinum |
+| AS-8 | A Platinum listing with 6 photos is scheduled to move down to Gold | Seven days before the period ends | The owner is emailed that 3 photos on that listing will be hidden |
+| AS-9 | That downgrade takes effect | A visitor views the listing | 3 photos are visible. The owner sees 3 more marked "hidden". The website link isn't shown or included in the schema. Other listings on the account are unaffected. |
+| AS-10 | That listing is moved back up to Platinum | Payment succeeds | All 6 photos and the links are visible again, and the listing is ordered as Platinum |
 | AS-11 | A Gold listing discounted 100% for 3 months, on an account whose default Silver listing is at full price | The account is active | The Gold listing has all of Gold's entitlements. The invoice is the $1 service fee plus the Silver price. |
 | AS-11a | A launch offer of 100% off Silver for 3 months | A new business signs up | The discount applies to the default Silver listing exactly as to any Silver listing. The invoice is the $1 service fee only, and the email in 7.11 is sent 7 days before the Silver price starts. |
 | AS-12 | An account passes its 7-day grace period | The lapse job runs | All of the account's listings are hidden, and no content is deleted |
-| AS-13 | An admin raises Gold's gallery limit from 10 to 12 | The owner of a Gold listing uploads photos 11 and 12 | Both are accepted, without any change to billing |
+| AS-13 | An admin raises Gold's gallery limit from 3 to 4 | The owner of a Gold listing uploads a 4th photo | It's accepted, without any change to billing |
 | AS-14 | An admin changes Gold's price | The owner of an existing Gold listing views billing | That listing keeps its current price. New Gold listings get the new price. |
 | AS-15 | A business account whose only listing is the default Silver listing | The owner tries to delete it | Deletion is blocked, with an option to pause the listing or close the account (BR-PE-06) |
 | AS-16 | A module other than `billing` or `entitlement` reads `tier_entitlement` directly | CI runs | The ArchUnit rule fails the build |
@@ -352,7 +355,7 @@ These become the test cases for story 7.10 and the related stories.
 | # | Question | Proposed answer | Owner | Needed by |
 |---|---|---|---|---|
 | ~~OQ-1~~ | ~~Can branches have different tiers?~~ | **Resolved:** each listing has its own tier | — | — |
-| OQ-2 | Confirm the indicative limits in section 4.2 (photos, specialties, description length, analytics history). This is MVP question Q6. | Use the proposed values | Product owner | Sprint 1 refinement |
+| OQ-2 | **Photos answered** (Silver 1, Gold 3, Platinum 6). Still to confirm in section 4.2: specialties (the product owner asked what these are), description length, and analytics history. This is MVP question Q6. | Use the proposed values | Product owner | Sprint 1 refinement |
 | OQ-3 | Set the tier prices for Silver, Gold, and Platinum, and the shopper account price | — | Product owner | Before Sprint 5 |
 | ~~OQ-4~~ | ~~Does add-on pricing vary by tier?~~ | **Resolved:** every listing is priced by its own tier | — | — |
 | OQ-5 | Should Silver listings get a logo and cover image? | Yes, because profiles look much better, which helps the directory as a whole | Product owner | Sprint 1 refinement |

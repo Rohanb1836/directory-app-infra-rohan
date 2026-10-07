@@ -14,7 +14,7 @@ ADRs use a lightweight version of the Nygard format: Status, Context, Decision, 
 | [0006](0006-session-management-bff.md) | **Backend is the OIDC client, with server-side sessions** | Accepted | **New.** Supersedes the draft for JWT in cookies |
 | [0007](0007-authorization-model.md) | **Authorization in four layers, enforced by the application** | Accepted (wording amended) | **New.** Split out of the identity decision |
 | [0008](0008-location-scoping.md) | Location scoping | Accepted | — |
-| [0009](0009-payments-stripe.md) | Payments use Stripe Billing | Proposed | Billing items follow ADR-0017 |
+| [0009](0009-payments-stripe.md) | Payments use Stripe Billing | **Accepted** (2026-10-06) | Billing items follow ADR-0017 |
 | [0010](0010-async-processing-and-scheduling.md) | Outbox, ShedLock on Postgres, no Redis in the MVP | Accepted | Redis removed; reconciliation job added |
 | [0011](0011-analytics-events.md) | Analytics events in a partitioned table | Accepted | Clarified that Keycloak events stay in Keycloak |
 | [0012](0012-api-contract-first.md) | API designed contract-first, with a published client | Accepted | Supersedes the code-first approach |
@@ -24,6 +24,7 @@ ADRs use a lightweight version of the Nygard format: Status, Context, Decision, 
 | [0016](0016-keycloak-deployment-and-configuration.md) | **Keycloak deployment and configuration as code** | Accepted | **New** |
 | [0017](0017-account-types-and-listing-tiers.md) | **Two account types, with tiers on each listing** | Accepted | **New (2026-09-30).** Supersedes the account-plan model. Clarified the same day: the default Silver listing is charged like any other |
 | [0018](0018-backend-platform-spring-boot-4-java-25.md) | **Backend platform: Spring Boot 4.1 on Java 25** | Accepted | **New (2026-09-30).** Supersedes the platform versions in ADR-0001 |
+| [0019](0019-frontend-platform-nextjs-16.md) | **Frontend platform: Next.js 16.3, React 19, and Node.js 24 LTS** | Accepted | **New (2026-09-30)** |
 
 ## Wording amendments
 
@@ -40,7 +41,7 @@ The early decisions listed in the Sprint 0 proposal were drafts, never formal AD
 
 | Topic | ADR | Owner |
 |---|---|---|
-| Confirm AWS as the cloud provider | 0014 | Product owner and tech lead |
-| Confirm Stripe and who owns the account | 0009 | Product owner |
-| Confirm Postmark or SendGrid | 0015 | Tech lead |
+| Confirm AWS, and **create the AWS account** (none exists yet, Q13) | 0014 | Product owner and tech lead |
+| ~~Confirm Stripe and who owns the account~~ Done: the product owner owns it. Open: offer PayPal too? | 0009 | Product owner |
+| Confirm Postmark or SendGrid, and **create the account** (none exists yet, Q13) | 0015 | Tech lead |
 | Staff MFA: default conditional OTP with reconciliation, or a custom flow keyed on the staff role | 0005 | Tech lead (by Sprint 2) |
