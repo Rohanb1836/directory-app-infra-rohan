@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 1.3 (2026-10-06: `/api/integration/` paths for service-to-service calls, ADR-0022. v1.2: section 12.2, the activity events endpoint and its CSRF exemption, ADR-0021. v1.1: section 12.1, polling and notifications.) |
+| **Version** | 1.4 (2026-10-12: section 8.1 adds `METHOD_NOT_ALLOWED`, `NOT_ACCEPTABLE`, and `UNSUPPORTED_MEDIA_TYPE`. v1.3: `/api/integration/` paths for service-to-service calls, ADR-0022. v1.2: section 12.2, the activity events endpoint and its CSRF exemption, ADR-0021. v1.1: section 12.1, polling and notifications.) |
 | **Date** | 2026-09-30 |
 | **Status** | Draft for review by both tech leads before Sprint 1 |
 | **Applies to** | `contract/openapi.yaml` in `directory-app-svc`, and every endpoint the backend serves |
@@ -87,6 +87,7 @@ Webhook and OAuth callback endpoints aren't part of the public contract that the
 | 402 | The account has lapsed and must pay before continuing (`ACCOUNT_LAPSED`) |
 | 403 | Signed in and **allowed to see** the resource, but the action is blocked: onboarding not done, staff MFA not set up, or a feature the listing's tier doesn't include (section 8) |
 | 404 | The resource doesn't exist **or is outside the caller's scope**. Never 403 for another account's data (ADR-0007). |
+| 405 / 406 / 415 | The method, `Accept` header, or `Content-Type` isn't supported by the endpoint. Usually a client bug (section 8.1). |
 | 409 | Version conflict (section 9), or a state conflict such as approving an already-approved listing |
 | 412 | Reserved for an `If-Match` precondition, if it's introduced later |
 | 422 | Valid request that breaks a business rule, such as reaching a tier limit (`ENTITLEMENT_LIMIT_REACHED`) or reusing an idempotency key with a different body |
@@ -189,12 +190,15 @@ Some codes add more fields, for example `entitlement`, `limit`, `used`, `upgrade
 | `STAFF_MFA_REQUIRED` | 403 | A staff action needs MFA to be set up and verified |
 | `ENTITLEMENT_NOT_INCLUDED` | 403 | The listing's tier or the account's type doesn't include the feature |
 | `NOT_FOUND` | 404 | The resource doesn't exist, or the caller can't access it |
+| `METHOD_NOT_ALLOWED` | 405 | The endpoint doesn't support this HTTP method. The `Allow` header lists the ones it does. |
+| `NOT_ACCEPTABLE` | 406 | The endpoint can't answer in any media type the `Accept` header allows |
 | `CONFLICT` | 409 | The `version` sent doesn't match the current one (section 9) |
 | `INVALID_STATE` | 409 | The action isn't allowed in the resource's current state, such as approving an approved listing or downgrading a Silver listing |
 | `ENTITLEMENT_LIMIT_REACHED` | 422 | A tier limit has been reached, such as the gallery photo limit |
 | `BUSINESS_RULE_VIOLATED` | 422 | Another business rule is broken. `detail` explains it, and `rule` gives the rule ID, for example `BR-PE-06` (can't delete the last listing). |
 | `IDEMPOTENCY_KEY_REUSED` | 422 | The same `Idempotency-Key` was used with a different request body |
 | `PAYLOAD_TOO_LARGE` | 413 | The request body is over the endpoint's size limit (for example, more than 50 events or 32 KB on `/api/public/events`) |
+| `UNSUPPORTED_MEDIA_TYPE` | 415 | The endpoint doesn't accept the request's `Content-Type` |
 | `RATE_LIMITED` | 429 | Too many requests. See `Retry-After`. |
 | `UPSTREAM_UNAVAILABLE` | 503 | A dependency (Stripe, Keycloak, Postmark, Google) isn't available. It's safe to retry later. |
 | `INTERNAL_ERROR` | 500 | An unexpected error. Use `traceId` to report it. |
