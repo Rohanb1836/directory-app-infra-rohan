@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Document reviewed** | `ui-screen-stories.md` v1.1 (2026-10-06), 48 screens |
-| **Review date** | 2026-10-06 (v1.3: product owner's answers, section 9; notification bell, section 10; survey insights screens, section 11) |
+| **Review date** | 2026-10-06; **re-verified 2026-10-12** against the updated screen list (v2.0: see **section 12** first) |
 | **For** | Pavan, Ram, Desmond (web team) |
 | **Checked against** | Product Backlog v1.5 (125 stories), MVP Definition v1.9, SPEC-BILL-01 v0.5, Identity and Access Design v2.2, Frontend Architecture v1.0, ADR-0001 to ADR-0019, To-Do List v1.0 |
 | **Suggested location** | `directory-app-ui/docs/product/ui-screen-stories-review.md` |
@@ -11,6 +11,8 @@
 **Note:** this review covers the screen list. The ordering in `ui-work-plan.md` wasn't available and should be checked against section 6.
 
 ---
+
+> **Re-verified on 2026-10-12.** The current status of every finding, plus 9 new findings, is in **section 12**. Sections 1–11 are the original review and its addenda.
 
 ## 1. Summary
 
@@ -191,3 +193,109 @@ The survey app is a separate application. Its results are shown in BlackPages (A
 - **Show the question wording as it was sent**, even if the question has since changed.
 - **Survey consent** is a new checkbox at onboarding (S03) and a new setting in account settings (S25) (story 18.2, OQ-S4).
 - **S43's "survey builder and results"** (surveys businesses create themselves) stays out of scope. Survey creation stays in the survey app's own admin UI.
+
+---
+
+## 12. Re-verification of the updated screen list (2026-10-12)
+
+**Checked:** the updated `ui-screen-stories.md` (still labeled v1.1, dated 2026-10-06, 48 screens), against findings R-01 to R-43 and the current documents: Backlog v1.9, MVP v1.13, SPEC-BILL-01 v0.7, SPEC-SRV-01 v0.1, Frontend Architecture v1.2, and ADR-0001 to ADR-0022.
+
+### 12.1 Summary
+
+| Status | Count | Findings |
+|---|---|---|
+| ✅ Resolved | 3 | R-23, R-27, R-34 |
+| 🟡 Partly resolved | 3 | R-07, R-21, R-26 |
+| ⏳ Waiting on a decision (acceptable for now) | 4 | R-01, R-18, R-19, R-25 |
+| ⛔ Still open | 33 | All other findings from R-01 to R-43 |
+| 🆕 New findings | 9 | R-44 to R-52 (section 12.4) |
+
+**Improvements since the first review.** These were raised in the architecture documents rather than as findings, and they're now reflected correctly:
+- **F-01 standard states** now include sign in again, finish onboarding, second step needed, account overdue, "changed elsewhere, reload", too many requests, and a server error with a **trace ID**. This matches Frontend Architecture section 7.
+- **The rule that public pages are the same for everyone**, with personal content loading afterwards, is in the design Definition of Done and in S05–S08, S28, and S06's random row. This matches Frontend Architecture section 4.
+- **The decisions are applied:**
+  - the yearly $12 service fee while every listing is free (S11, S20, S21);
+  - tax needed at launch (S36, now a Must);
+  - overdue as error 402 (S20);
+  - Cloudflare Turnstile (S15);
+  - Silver listings kept out of the landing page rows but shown on the map (S06).
+- **Open questions are marked** on the screens they affect: F-1 (S38), F-3 (S32), F-4 (S11), and F-7 (S20).
+
+### 12.2 Status of every earlier finding
+
+| ID | Finding | Status | What's still needed |
+|---|---|---|---|
+| R-01 | Specialty pages | ⏳ | Waiting on F-1 (keep specialties?) and F-2 (address). Add a placeholder screen marked "Pending decision", so the work isn't forgotten. |
+| R-02 | Admin SEO settings (6.3 Must, 6.9) | ⛔ | Add a screen. 6.3 is a **Must in Sprint 4**. |
+| R-03 | Admin billing view and refunds (8.4) | ⛔ | Add to S33's detail page, or as a new screen |
+| R-04 | Admin audit log (14.4) | ⛔ | Add a screen (Should) |
+| R-05 | Admin overrides of limits (BR-PE-14) | ⛔ | Add to S33's detail page |
+| R-06 | Pause and reactivate a listing (3.5, Must) | ⛔ | Add to S12 and S04 |
+| R-07 | Content hidden after a downgrade, and the 7-day notice | 🟡 | S19 now has the 7-day notice and a cancel option. **S12 still needs the "hidden: over this listing's tier limit" state.** |
+| R-08 | Search suggestions as you type (5.2) | ⛔ | Add to S05 and S13 |
+| R-09 | Account suspended, or login refused | ⛔ | S01 only covers the temporary lock after failed attempts. Add a suspended state (in Keycloak or F-01). |
+| R-10 | Keycloak account pages | ⛔ | S25 links to them but they aren't designed. Theme them, or decide to use Keycloak's default look. |
+| R-11 | Bulk actions on members (14.6) | ⛔ | Add to S33 |
+| R-12 | Email: 7-day downgrade notice | ⛔ | S34's email list is unchanged. Add this email (the S19 screen alone isn't enough). |
+| R-13 | Email: lapsed account | ⛔ | Add to S34 |
+| R-14 | Email: new-message alert | ⛔ | Add to S34 |
+| R-15 | Email: copy of the visitor's message | ⛔ | Add to S34 |
+| R-16 | Email: relayed replies | ⛔ | Add to S34 |
+| R-17 | Email: "we've launched in your state" | ⛔ | Add to S34, marked pending T10 |
+| R-18 | Re-accepting changed terms | ⏳ | Waiting on T2 |
+| R-19 | Admin view of demand by state | ⏳ | Waiting on T10 |
+| R-20 | Unsubscribe and email preferences | ⛔ | Needed before any non-transactional email (R-17, survey invitations) |
+| R-21 | Specialties versus "No third level" | 🟡 | S38 now designs without specialties, leaves room for them, and marks them pending (F-1). **S12 still has a "keywords" tab.** Rename it "Specialties (pending F-1)", or define keywords as something separate. |
+| R-22 | S16 sliders from 1 to 100, and photos, versus 1–5 stars | ⛔ | Unchanged. Needs a product decision, and if kept, changes to 9.1, 9.3, and 6.8b, plus photo moderation in S41. |
+| R-23 | PayPal at checkout | ✅ | Marked "not decided (F-4)" |
+| R-24 | S35 "Plans and discounts" | ⛔ | Still titled that way. Rename to **"Listing tiers, pricing, and discounts"**. |
+| R-25 | Phone numbers in search data | ⏳ | Waiting on decision #5 (Desmond) |
+| R-26 | S06 new scope | 🟡 | The Silver rule is applied. The US map, the top searched, top rated, and random rows, and the listings-per-state API still have **no backlog story** and no "Pending decision: new scope" badge. |
+| R-27 | Category requests | ✅ | Linked to backlog 4.8 (Should) |
+| R-28 | Contact reveal (S15, S07) | ⛔ | Still no backlog story or event-list entry |
+| R-29 | S12's video, certification, and coupon tabs | ⛔ | Still new scope without a story. Mark them "Pending decision: new scope". |
+| R-30 | Banners (S28, S44) | ⛔ | Still no story. S28 says "No ticket exists yet". |
+| R-31 | Growth tools (S43) | ⛔ | Still no story. **Now also conflicts with SPEC-SRV-01:** survey creation stays in the survey app (see R-48). |
+| R-32 | FAQ (S29) | ⛔ | No story yet. Small: reuse the static page template. |
+| R-33 | Review sliders and photos | ⛔ | Same as R-22 |
+| R-34 | Secret shopper: 2 jobs, buying in the company's name | ✅ | Applied. F-3 is marked open in S32. |
+| R-35 | S40 approvals in build step 5, but 3.6 is a Must in Sprint 3 | ⛔ | Still no mapping from steps to sprints |
+| R-36 | S37 and S38 built late | ⛔ | State that seed data covers them until then, or bring them forward |
+| R-37 | S16, S23, and S32 built long before their backend sprints | ⛔ | Still build steps 2–4, against backend Sprints 7–8 |
+| R-38 | Notification bell (2.23, Must) | ⛔ | Not added. Add as **S49**, or as part of F-02 (the header). |
+| R-39 | "Confirming your payment" waiting state on checkout | ⛔ | S11 lists success, cancelled, and failed only |
+| R-40 | S50 survey insights for businesses (18.10) | ⛔ | Not added |
+| R-41 | S51 survey insights for shoppers (18.11) | ⛔ | Not added |
+| R-42 | S52 public survey highlights (18.12) | ⛔ | Not added |
+| R-43 | S53 survey analytics for admins (18.13) | ⛔ | Not added |
+
+### 12.3 Timing check against the 26-week plan
+- The screen list still uses **design weeks** and **build steps** without sprint numbers. Add a **"Target sprint"** column, using Backlog v1.9 section 3. Then R-35 to R-37 can be checked.
+- **The frontend has spare build capacity** (Backlog section 3, "Team and capacity"), but design work for 53 or more screens is about 20% of the UI team's time. **Design should stay at least one sprint ahead of build**, as the screen list's own rule requires.
+
+### 12.4 New findings
+
+| ID | Where | Finding | Fix |
+|---|---|---|---|
+| **R-44** | Section 4, decision #1 | **Level names are marked "Open: Desmond", but they're decided:** Silver, Gold, and Platinum (ADR-0017, decision D12, SPEC-BILL-01). | Mark it **closed**. Plain-language "level" can stay in UI text, but the names are fixed. |
+| **R-45** | S19 | It still says "Depends on the price decision (level price or $1 add-on)". **This is decided:** every listing, including the default Silver listing, is charged its tier price, and the $1 service fee is charged once per account (SPEC-BILL-01, BR-PE-03 and BR-PE-04). | Remove the dependency. Decision #2's follow-up with Desmond is fine, but the screen shouldn't wait for it. |
+| **R-46** | S03, S25 | **Survey consent is missing.** It's asked at onboarding, and can be changed in account settings (story 18.2, SPEC-SRV-01 BR-SI-04, OQ-S4). | Add a consent checkbox to S03 and a setting to S25, marked "Pending OQ-S4" |
+| **R-47** | S27 | "Market report" isn't defined anywhere in the backlog or the specs | If it means survey results, link it to **S50**. If not, define it and add a story. |
+| **R-48** | S43 | The "survey builder and results" conflicts with SPEC-SRV-01: **surveys are created only in the survey app** (ADR-0022), and businesses creating their own surveys is out of scope | Remove surveys from S43, or mark them "New scope: needs a decision" |
+| **R-49** | S31 | The shopper dashboard doesn't link to **shopper survey insights (S51)** | Add a "Survey results" box that links to S51 |
+| **R-50** | Section 4 footnote | "The backend must write the API description before any screen can be built" doesn't match ADR-0012: **either team proposes the contract and both tech leads approve it**. Once it's merged, the UI builds against generated mocks, and design never waits for it. | Reword: "The API contract for a screen must be agreed and merged before its build starts. Design can go ahead before that." |
+| **R-51** | Section 1 | It still says "all 48 screens". With the bell (S49) and survey insights (S50–S53), there are **at least 53**, plus the screens for R-01 to R-05 once they're added. | Update the count and the table |
+| **R-52** | S16 | "A shopper wants to rate…", but **businesses can also write reviews** (story 9.1), as S24's "reviews I wrote" shows | Change to "A shopper or business…" |
+
+### 12.5 Suggested order of fixes
+1. **Quick text fixes (this week):** R-44, R-45, R-50, R-52, R-24, the rename part of R-21, and R-51.
+2. **Add missing screens and states before design week 2:**
+   - R-38 (bell, S49) and R-39 (checkout waiting state);
+   - R-06 (pause) and R-07 (hidden over limit);
+   - R-09 (suspended);
+   - R-46 (survey consent);
+   - R-02 (SEO admin, a Must in Sprint 4).
+3. **Add the survey insights screens S50–S53** (R-40 to R-43, and R-49) to design week 3, since they're built in Sprint 11.
+4. **Complete S34's email list** (R-12 to R-17), and decide R-10 (Keycloak account pages).
+5. **Product owner decisions:** R-22 (review scoring), and the new-scope items R-26 and R-28 to R-32. Each is either backed by a backlog story or marked "Pending decision: new scope".
+6. **Add the "Target sprint" column** (section 12.3), then recheck R-35 to R-37.
