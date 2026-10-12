@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Version** | 1.3 (2026-10-06: service areas are lists of cities, Q5. v1.2, 2026-09-30: frontend platform and API conventions now in the Frontend Architecture and API Style Guide. v1.1: backend on Spring Boot 4.1 and Java 25.) |
+| **Version** | 1.6 (2026-10-06: the survey app integration and the new `survey-insights` module, section 8.15, ADR-0022. v1.5: section 8.14 on the activity tracking pipeline, its table design, partitions, and summary tables, ADR-0021. v1.4: section 8.13 on how backend events reach the UI, and the notification center, ADR-0020. v1.3: service areas are lists of cities, Q5. v1.2, 2026-09-30: frontend platform and API conventions now in the Frontend Architecture and API Style Guide. v1.1: backend on Spring Boot 4.1 and Java 25.) |
 | **Date** | 2026-09-30 |
 | **Status** | Draft for review by both tech leads before Sprint 1 |
 | **Owners** | Tech leads for `directory-app-svc` and `directory-app-ui` |
-| **Related** | ADR-0001 to ADR-0019, Frontend Architecture v1.0, API Style Guide v1.0, Identity and Access Design v2.2, SPEC-BILL-01 v0.5, MVP Definition v1.9, Product Backlog v1.5 |
+| **Related** | ADR-0001 to ADR-0022, SPEC-SRV-01, Frontend Architecture v1.0, API Style Guide v1.0, Identity and Access Design v2.2, SPEC-BILL-01 v0.5, MVP Definition v1.9, Product Backlog v1.5 |
 
 This document gives the **big picture**: how the system fits together, what each part owns, and the rules that apply everywhere. It links to the ADRs for *why* each decision was made, and to the specs for detailed business rules. Diagrams are written in Mermaid so they're reviewed and versioned like code.
 
@@ -49,6 +49,7 @@ flowchart LR
     google["Google Maps Platform<br/>maps, places, geocoding"]
     postmark["Postmark<br/>email and reply relay"]
     crawlers["Search engines<br/>(Google and others)"]
+    survey["Survey app<br/>(survey-app-svc)<br/>surveys and responses"]
 
     visitor -- "search, browse, message businesses" --> bp
     shopper -- "review, secret-shop, pay" --> bp
@@ -58,6 +59,8 @@ flowchart LR
 
     bp -- "checkout, subscriptions, webhooks" --> stripe
     bp -- "maps, geocoding" --> google
+    bp -- "pull responses (hourly)" --> survey
+    survey -- "pull locations and recipients" --> bp
     bp -- "send email, receive replies" --> postmark
 ```
 
@@ -71,6 +74,7 @@ flowchart LR
 | Google Maps Platform | Map views, Places Autocomplete, and geocoding | Backlog 3.4, 5.3, 5.9 |
 | Postmark | Transactional email, Keycloak authentication email, and the inbound relay for message replies | ADR-0015 |
 | Search engines | Crawl server-rendered pages and sitemaps | Backlog E6 |
+| **Survey app** (`survey-app-svc`) | A separate application that schedules and emails surveys and collects responses. **Each of its sites is a BlackPages location.** It pulls locations and recipients from BlackPages, and BlackPages pulls its responses. | ADR-0022, SPEC-SRV-01 |
 
 ---
 
@@ -100,6 +104,7 @@ flowchart TB
     stripe["Stripe"]
     google["Google Maps Platform"]
     postmark["Postmark"]
+    survey["survey-app-svc<br/>(separate app)"]
 
     browser --> cf --> alb
     alb -- "blackpages.io/*" --> web
@@ -122,6 +127,9 @@ flowchart TB
     kc --> postmark
     browser -- "Maps JavaScript API" --> google
     api -- "Geocoding" --> google
+    api -- "integration API (bearer token)" --> survey
+    survey -- "integration API (bearer token)" --> api
+    survey -. "client credentials" .-> kc
 ```
 
 | Container | Technology | Repository | Responsibility | Reference |
@@ -141,7 +149,7 @@ flowchart TB
 
 ## 3. Backend modules
 
-The backend is a **modular monolith** with **15 modules**. Modules talk to each other only through each module's `api` package (synchronous calls) or through **domain events** published via the transactional outbox. Spring Modulith and ArchUnit tests enforce these boundaries on every build.
+The backend is a **modular monolith** with **16 modules**. Modules talk to each other only through each module's `api` package (synchronous calls) or through **domain events** published via the transactional outbox. Spring Modulith and ArchUnit tests enforce these boundaries on every build.
 
 > **Change from ADR-0001:** `entitlement` is a module in its own right, split out of `billing`, because almost every module reads entitlements and `billing` shouldn't become a dependency hub (SPEC-BILL-01, section 10).
 
@@ -160,10 +168,11 @@ The backend is a **modular monolith** with **15 modules**. Modules talk to each 
 | `review` | Reviews, replies, flags, moderation, the unlock gate, ratings | `review`, `review_response`, `review_flag` | `ReviewSubmitted`, `ReviewModerated`, `ReviewsUnlocked` | E9 |
 | `secretshopper` | Monthly selection, assignments, surveys, evaluations | `ss_selection_run`, `ss_selection`, `ss_assignment`, `survey*` | `SecretShoppersSelected`, `AssignmentCreated`, `EvaluationSubmitted` | E10 |
 | `messaging` | Visitor contact form, threads, email relay, spam controls | `message_thread`, `message` | `MessageReceived`, `MessageReplied` | E16 |
-| `analytics` | Event ingestion, aggregates, dashboard queries | `activity_event` (partitioned), aggregate tables | — | E11, E12 |
+| `analytics` | Event ingestion (`/api/public/events`, and searches recorded by the backend), partition management, summary tables, dashboard queries (section 8.14) | `activity_event` (partitioned by month), `activity_daily_listing`, `activity_daily_listing_term`, `activity_daily_search`, `activity_daily_category`, `activity_hourly_platform` | — | E11, E12 |
 | `seo` | Metadata templates, overrides, sitemaps, redirects, schema data, index rules | `seo_template`, `seo_override` | `SitemapRegenerated` | E6 |
 | `admin` | Moderation queues, member management, audit log | `audit_log` | — | E14 |
-| `notification` | Email templates and delivery through Postmark | (uses `outbox_event`) | — | Shared |
+| `survey-insights` | **Survey app integration:** the locations and recipients APIs it provides, syncing responses from the survey app, summaries with privacy rules, and survey charts (ADR-0022, SPEC-SRV-01) | `survey_def`, `survey_log_ref`, `survey_question_snapshot`, `survey_response_copy`, `survey_result_summary`, `survey_sync_state` | — | E18 |
+| `notification` | Email templates and delivery through Postmark. **In-app notifications** (story 2.23). | `user_notification` (uses `outbox_event`) | — | Shared, E2 |
 
 Shared infrastructure lives in `io.blackpages.shared`: security configuration, `LocationContext`, error handling, the outbox, clock and ID providers, and web configuration.
 
@@ -203,6 +212,10 @@ flowchart LR
     admin --> review
     admin --> billing
     notification --> identity
+    surveyinsights["survey-insights"] --> location
+    surveyinsights --> identity
+    surveyinsights --> taxonomy
+    surveyinsights --> entitlement
 ```
 
 **Rules:**
@@ -532,12 +545,15 @@ erDiagram
         text status
     }
     activity_event {
-        uuid id PK
+        uuid event_id
         timestamptz occurred_at
-        uuid location_id FK
-        text session_id
-        text event_type
-        uuid listing_id FK
+        timestamptz received_at
+        text name
+        uuid location_id
+        text analytics_session_id
+        uuid user_id
+        uuid listing_id
+        text query_text
         jsonb props
     }
 ```
@@ -546,13 +562,14 @@ erDiagram
 - `outbox_event` (the transactional outbox)
 - `shedlock` (scheduled-job locks)
 - `audit_log`
+- `user_notification`: user_id, type, title, message, link, created_at, read_at. Indexed on (user_id, read_at, created_at). Kept for 90 days. (ADR-0020)
 - `seo_template` and `seo_override`
 - `spring_session` and `spring_session_attributes`
 
 **Rules:**
 - `ss_selection_run (location_id, period)` is unique, so a location can't be selected twice in a month.
 - There's one ordinary review per author per listing.
-- `activity_event` is partitioned by month on `occurred_at` (ADR-0011).
+- `activity_event` is partitioned by month on `occurred_at` (ADR-0011). Its full design, partition job, and summary tables are in **section 8.14**.
 
 ### 5.5 Migrations
 
@@ -803,7 +820,7 @@ Four layers, all checked by `AuthorizationService` in the backend:
 
 | Event | Producer | Main consumers |
 |---|---|---|
-| `UserRegistered`, `UserEmailChanged`, `UserDisabled`, `UserDeleted`, `OnboardingCompleted` | identity | billing, review, notification, admin |
+| `UserRegistered`, `UserEmailChanged`, `UserDisabled`, `UserDeleted`, `OnboardingCompleted` | identity | billing, review, notification, admin, survey-insights (`UserDeleted`: anonymize in the survey app) |
 | `AccountActivated`, `AccountLapsed`, `AccountReactivated` | billing | entitlement, listing, notification |
 | `ListingAdded`, `ListingRemoved` | billing | entitlement, listing |
 | `ListingTierChangeScheduled`, `ListingTierChangeCanceled`, `ListingTierChangeEffective` | billing | entitlement, notification |
@@ -815,7 +832,7 @@ Four layers, all checked by `AuthorizationService` in the backend:
 | `TaxonomyChanged` | taxonomy | seo, search |
 | `ReviewSubmitted`, `ReviewModerated`, `ReviewsUnlocked` | review | listing, seo, notification, analytics |
 | `SecretShoppersSelected`, `AssignmentCreated`, `EvaluationSubmitted` | secretshopper | notification, review |
-| `MessageReceived`, `MessageReplied` | messaging | notification, analytics |
+| `MessageReceived`, `MessageReplied`, `MessageReported` | messaging | notification, analytics, admin |
 
 ### 8.5 Scheduled jobs
 All scheduled jobs use `@Scheduled` with **ShedLock on Postgres**, so each runs exactly once even when there are several backend tasks.
@@ -827,8 +844,11 @@ All scheduled jobs use `@Scheduled` with **ShedLock on Postgres**, so each runs 
 | Apply scheduled tier downgrades | Daily, aligned with Stripe period ends | Stripe is the source of truth for timing |
 | Lapse check | Daily | 7-day grace period (backlog 7.7) |
 | Identity reconciliation | Nightly | Keycloak compared with the application (identity design, section 9) |
+| Survey sync (surveys and survey logs, then responses) | Hourly | Section 8.15, SPEC-SRV-01 section 7 |
+| Survey and MariaDB parallel-run comparison | Daily, until the MariaDB sync is retired | SPEC-SRV-01 section 10 |
 | Sitemap regeneration | On events, plus nightly | Backlog 6.4 |
-| Analytics aggregates | Hourly and nightly | Backlog 11.2 |
+| Analytics summaries | Every hour (today so far), and nightly at 02:00 Arizona time (yesterday, final) | Backlog 11.2, section 8.14.4 |
+| Activity partitions: create next months, drop expired | Daily at 01:00 Arizona time | Section 8.14.3 |
 | Expire entitlement overrides | Hourly | SPEC-BILL-01, BR-PE-14 |
 
 ### 8.6 API conventions (ADR-0012)
@@ -887,7 +907,7 @@ Redis or Valkey is added only when there's more than one api task (ADR-0010).
 - Non-essential tracking runs only after cookie consent (backlog 11.3).
 - Analytics events carry IDs, never emails or names.
 - Deleting an account anonymizes the user's reviews, cancels their subscription, deletes the Keycloak user, and ends all sessions.
-- Retention: 90 days for Keycloak login events, 14 days for logs, and a defined window for analytics events (to be set in SPEC-ANL-01).
+- Retention: 90 days for Keycloak login events, 14 days for logs. Analytics: raw events **13 months**, summary tables **25 months**, as proposed in section 8.14.5, to be confirmed in SPEC-ANL-01 and the privacy policy (T1).
 
 ### 8.12 Testing strategy (summary)
 
@@ -904,6 +924,172 @@ Redis or Valkey is added only when there's more than one api task (ADR-0010).
 The full test strategy will be in `docs/architecture/test-strategy.md`.
 
 ---
+
+### 8.13 How backend events reach the UI (ADR-0020)
+
+Domain events are handled **inside the backend** (section 8.4). The browser **isn't pushed** anything in the MVP. It finds out about changes in six ways:
+
+| # | Mechanism | Used for |
+|---|---|---|
+| 1 | **The response to the user's own request**, followed by refreshing the related data (TanStack Query) | The user's own changes, such as upgrades and edits |
+| 2 | **Re-fetching** when the window regains focus, or on a timer | Dashboards, the inbox, admin queues |
+| 3 | **Rebuilding public pages** through `/_internal/revalidate`, plus CloudFront invalidation | Public pages (section 8.7) |
+| 4 | **Polling after a redirect** | The Stripe checkout return page, until the webhook has been processed |
+| 5 | **Email** from the `notification` module | Users who aren't on the site |
+| 6 | **In-app notification center**: a `user_notification` row, a bell with an unread count, refreshed every 60 seconds and on focus | Users who are on the site (story 2.23) |
+
+**Which events notify whom**
+
+| Event | Notifies | In the app | Email |
+|---|---|---|---|
+| `ListingApproved` / `ListingRejected` | Owner | ✓ | ✓ |
+| `MessageReceived` | Owner | ✓ | ✓ |
+| `ReviewSubmitted` (on the owner's listing, once visible) / `ReviewsUnlocked` | Owner | ✓ | ✓ (unlock) |
+| `ReviewModerated` | Review author | ✓ | ✓ |
+| `PaymentFailed` / `AccountLapsed` | Owner or shopper | ✓ | ✓ |
+| `ListingTierChangeScheduled` (7-day notice) / `ListingTierChangeEffective` | Owner | ✓ | ✓ (notice) |
+| `DiscountEnding` | Owner or shopper | ✓ | ✓ |
+| `AssignmentCreated` (secret shopper) | Selected shopper | ✓ | ✓ |
+| `ListingSubmitted` | Operators for that location | ✓ | — |
+| `MessageReported` (16.7) | Admins | ✓ | — |
+
+**Rules**
+- **Confidentiality:** notifications never reveal who a secret shopper was, or another user's email address.
+- **Delivery:** notifications are written by event handlers through the outbox, so delivery is **at least once**. Handlers de-duplicate on the event ID.
+- **Cheap polling:** `GET /api/notifications` returns an `unreadCount` and supports `ETag`, so most refreshes return `304 Not Modified` (API Style Guide, section 12.1).
+- **Upgrade path (post-MVP P.12):** a Server-Sent Events stream at `/api/notifications/stream`, reading the same table, with Postgres `LISTEN/NOTIFY` or Valkey to reach every API task, on a route that bypasses the CDN. Polling stays as the fallback.
+
+### 8.14 Activity tracking pipeline (ADR-0011, ADR-0021)
+
+This is how website activity is recorded and turned into the numbers shown on dashboards. The **contract** for the browser endpoint is in the API Style Guide, section 12.2. This section covers what happens in the backend.
+
+#### 8.14.1 Flow
+
+```mermaid
+flowchart LR
+    B["Browser<br/>(after consent)"] -- "POST /api/public/events<br/>(batched beacons)" --> I["analytics: ingestion<br/>check origin, rate limit,<br/>validate, filter bots, enrich"]
+    S["search module<br/>(when a search runs)"] -- "ActivityRecorder.record()" --> I
+    M["messaging module<br/>(MessageReceived)"] -- "event handler" --> I
+    I -- "bounded in-memory queue" --> W["batch writer<br/>(every 2 s or 500 events)"]
+    W --> E[("activity_event<br/>monthly partitions")]
+    E -- "hourly and nightly jobs" --> A[("summary tables")]
+    A --> D["dashboards: listing (12.1),<br/>admin (12.2), public (12.3)"]
+```
+
+**Ingestion:**
+- **Checks** come from the API Style Guide, section 12.2: same-site origin, rate limits, the event list, field allow-lists, and size limits.
+- **Enrichment:**
+  - `user_id`, from the session cookie when the visitor is signed in;
+  - `location_id`, from the listing, city, or page context;
+  - `is_bot`, from the user agent and known bot IP ranges;
+  - `visitor_region`, if to-do T10 is approved, from CloudFront's viewer region header. The **IP address is never stored**.
+- **Recorded by the backend itself**, not the browser:
+  - **searches** (`SEARCH`), with the normalized query, filters, result count, and the IDs of listings shown on the first page, used for "search appearances";
+  - **message leads** (`MESSAGE_SENT`, from `MessageReceived`).
+- **Writing:** a **bounded in-memory queue** (10,000 events) and a batch writer using multi-row `INSERT` statements with `ON CONFLICT (event_id, occurred_at) DO NOTHING`, which de-duplicates events.
+  - If the queue is full, new events are **dropped and counted in a metric**, never blocking the request.
+  - On shutdown, the queue is written out before the task stops.
+  - This is **best effort, deliberately outside the outbox**. A small loss after a crash is acceptable for analytics (API Style Guide, section 12.2.3).
+
+#### 8.14.2 Table design: `activity_event`
+
+```sql
+CREATE TABLE activity_event (
+    event_id              uuid        NOT NULL,                 -- from the browser, or created by the backend
+    occurred_at           timestamptz NOT NULL,                 -- the partition key
+    received_at           timestamptz NOT NULL DEFAULT now(),
+    name                  text        NOT NULL,                 -- for example LISTING_VIEW, SEARCH, CONTACT_REVEAL
+    source                text        NOT NULL,                 -- WEB (browser) or SERVER (recorded by the backend)
+    location_id           uuid,
+    city_id               uuid,
+    category_id           uuid,
+    listing_id            uuid,
+    listing_tier          text,                                 -- the listing's tier at the time, for per-tier reporting
+    analytics_session_id  uuid,                                 -- from the bp_asid cookie; not linked to the login session
+    user_id               uuid,                                 -- only when signed in; never an email
+    path                  text,
+    referrer_host         text,
+    query_text            text,                                 -- SEARCH only, normalized (lower case, trimmed, max 100 characters)
+    result_count          integer,                              -- SEARCH only
+    visitor_region        text,                                 -- for example US-AZ; only if T10 is approved
+    is_bot                boolean     NOT NULL DEFAULT false,
+    props                 jsonb       NOT NULL DEFAULT '{}'::jsonb,
+    PRIMARY KEY (event_id, occurred_at)
+) PARTITION BY RANGE (occurred_at);
+
+-- Created on each monthly partition:
+CREATE INDEX ON activity_event USING brin (occurred_at);
+CREATE INDEX ON activity_event (listing_id, occurred_at) WHERE listing_id IS NOT NULL;
+CREATE INDEX ON activity_event (name, occurred_at);
+```
+
+**Design notes**
+- **No foreign keys** on this table. Listings and users can be deleted or anonymized without slowing inserts or blocking deletes. The summary jobs join to current data when they run.
+- **`listing_tier` is copied at the time of the event**, so reports by tier stay correct after a listing changes tier.
+- **A BRIN index on time** is small and fast for append-only data. A B-tree index on `(listing_id, occurred_at)` serves per-listing summaries.
+- **When an account is deleted** (story 2.5), `user_id` is set to null in the raw events, and the summary tables never contain user IDs.
+
+#### 8.14.3 Monthly partitions
+- **Each calendar month (UTC)** has its own partition, for example `activity_event_2026_10`, holding `[2026-10-01, 2026-11-01)`.
+- **A default partition** (`activity_event_default`) catches anything outside the existing ranges, such as an event with a far-off timestamp. A daily check alerts if it holds any rows.
+- **The partition job** (`ActivityPartitionJob`, `@Scheduled` with ShedLock, daily at 01:00 Arizona time) runs these steps:
+  1. **Creates partitions for the current month and the next 2 months** if they don't exist, together with their indexes. Running it daily means a missed run is harmless.
+  2. **Drops partitions older than the raw retention period** (13 months, proposed), using `DETACH PARTITION … CONCURRENTLY` and then `DROP TABLE`. It **never** drops a month whose summaries haven't been finalized.
+  3. **Records** what it created and dropped, and emits metrics. It raises an alert if next month's partition is still missing 3 days before the month starts.
+- **Flyway** creates the parent table, the default partition, and the first 3 months. Partition upkeep isn't done in migrations, so a missed release can never stop events being written.
+- *Alternative:* the `pg_partman` extension can do the same job if it's available on the RDS version used. The scheduled job keeps the logic in our code and covered by our tests.
+
+#### 8.14.4 Summary tables
+
+Dashboards **only read summary tables**, never `activity_event`. All of them are by **day**, using the **location's time zone** (Arizona: `America/Phoenix`) for day boundaries, and **exclude bots**.
+
+| Table | Grain (one row per…) | Columns | Used by |
+|---|---|---|---|
+| `activity_daily_listing` | day × listing | `day`, `listing_id`, `location_id`, `city_id`, `listing_tier`, `views`, `unique_sessions`, `search_appearances`, `contact_reveals`, `click_to_call`, `website_clicks`, `map_opens`, `messages` | Each listing's dashboard (12.1, all tiers), the account overview, the admin dashboard |
+| `activity_daily_listing_term` | day × listing × search term | `day`, `listing_id`, `term`, `appearances`, `clicks` | **Gold and Platinum** "search terms that led to the listing" (`listing.analytics.level` STANDARD and above) |
+| `activity_daily_search` | day × location × city × category × term | `day`, `location_id`, `city_id`, `category_id`, `term`, `searches`, `zero_result_searches`, `result_clicks` | Admin search insights, public "trending searches" (12.3), and category requests (4.8) |
+| `activity_daily_category` | day × location × city × category | `day`, `location_id`, `city_id`, `category_id`, `views`, `searches`, `listing_views` | Public "top categories" (12.3), and the **benchmarks** for Platinum listings (median across a category and city, shown only when there are at least 5 other listings) |
+| `activity_hourly_platform` | hour × location | `hour`, `location_id`, `page_views`, `unique_sessions`, `searches`, `listing_views`, `leads`, `bot_events_excluded` | Admin activity charts (12.2) and monitoring |
+
+**How the summaries are built**
+- **Every hour:** **today's** rows are recalculated from raw events for the current day (`INSERT … ON CONFLICT … DO UPDATE`). It's safe to rerun.
+- **Nightly at 02:00 Arizona time:** **yesterday's** rows are recalculated one last time, including late-arriving events, and the day is marked **final** in `activity_rollup_status` (day, location, finalized_at). The partition job checks this before dropping a month.
+- **Recalculating** any day range is a single admin command, used after a fix or a change to bot rules.
+- **Unique sessions** count distinct `analytics_session_id` values per day. They're approximate, because consent and cookie clearing affect them.
+
+**Privacy rules for summaries**
+- **Public charts** (12.3) only show a search term or category when it has at least **5 sessions** in the period.
+- **Benchmarks** need at least **5 other listings**. No summary table contains user IDs, emails, or IP addresses.
+
+#### 8.14.5 Retention (proposed; to be confirmed in SPEC-ANL-01 and the privacy policy, T1)
+
+| Data | Retention | Why |
+|---|---|---|
+| `activity_event` (raw) | **13 months** | Enough to recalculate a full year, and to compare the same month a year apart |
+| Summary tables | **25 months** | Covers Platinum's 730-day analytics history (SPEC-BILL-01, section 4.2) plus a margin |
+| Metrics about dropped and invalid events | 90 days | Operational monitoring |
+
+#### 8.14.6 Volume and capacity (Arizona MVP)
+- **A planning estimate:** 50,000 visits a month × about 15 events per visit is roughly **750,000 raw events a month**, or about 1 GB a month including indexes. That's comfortably within the planned `db.t4g.small` RDS instance. Revisit when more states go live.
+- **Write load:** batches of up to 500 rows keep the ingestion cost to a few small inserts per second at peak.
+- **When to move off Postgres:** if raw events exceed about **10 million a month**, or summary jobs take more than 15 minutes, consider exporting to a data warehouse (post-MVP item P.8). The ingestion contract and summary tables can stay the same.
+
+### 8.15 Survey app integration (ADR-0022, SPEC-SRV-01)
+
+The separate **survey app** (`survey-app-svc`) schedules, emails, and collects surveys. **Each of its sites is a BlackPages location.** BlackPages shows the results.
+
+| Direction | What | How |
+|---|---|---|
+| BlackPages → survey app | **Locations** (which become sites) and **survey recipients** (accounts with survey consent, by home location) | The survey app pulls `GET /api/integration/v1/locations` and `/survey-recipients` |
+| Survey app → BlackPages | **Surveys, survey logs (with the questions as sent), and responses** | `survey-insights` pulls `/api/integration/v1/surveys`, `/survey-logs`, and `/responses?cursor=…` every hour |
+| BlackPages → survey app | **Anonymize** a deleted account's responses | An outbox handler for `UserDeleted` calls `POST /api/integration/v1/respondents/{recipientId}/anonymize` |
+
+**Rules**
+- **No direct database access** in either direction. **No chart calls the survey app while a page loads.**
+- **Integration endpoints** in both apps are under `/api/integration/**` and accept only **Keycloak client-credentials bearer tokens** with the right client roles. BlackPages serves them through a **second security filter chain** that validates bearer tokens. No session, cookies, or CSRF apply (ADR-0006, API Style Guide section 3.1).
+- **Charts read only `survey_result_summary`.** Groups of **fewer than 5 respondents** are hidden outside the admin console, and free text is never public (SPEC-SRV-01, BR-SI-07 and BR-SI-08).
+- **The copied responses are pseudonymous** (account IDs only) and kept for 13 months. Summaries are kept for 25 months, as with activity data (section 8.14.5).
+- **The MariaDB sync to Brilliant Directories** runs in parallel, with a daily comparison, until the switch-off. Then it's retired (story 18.16).
 
 ## 9. Quality targets
 

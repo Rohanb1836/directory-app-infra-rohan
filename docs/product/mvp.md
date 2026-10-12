@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Document version** | 1.10 |
+| **Document version** | 1.13 |
 | **Date** | 2026-10-06 |
-| **Status** | Draft for stakeholder review (v1.10: two account types; Silver, Gold, and Platinum are listing tiers; the default Silver listing is charged and discounted like any other; only the owner changes tiers; one user per business account; shopper accounts have a price, discounts apply, and the $1 fee is additional; backend on Spring Boot 4.1 and Java 25; answers to Q1â€“Q15 applied) |
+| **Status** | Draft for stakeholder review (v1.13: two account types; Silver, Gold, and Platinum are listing tiers; the default Silver listing is charged and discounted like any other; only the owner changes tiers; one user per business account; shopper accounts have a price, discounts apply, and the $1 fee is additional; backend on Spring Boot 4.1 and Java 25; answers to Q1â€“Q15 applied; in-app notification center; activity tracking design and optional PostHog; survey insights and survey app integration, Sprint 11 added) |
 | **Repositories** | `directory-app-svc` (backend), `directory-app-ui` (frontend), `directory-app-infra` (infrastructure) |
-| **Related documents** | ADR-0001 to ADR-0019, Answers Log (2026-10-06), Identity and Access Design v2.2, SPEC-BILL-01 v0.6, Product Backlog v1.6 (`directory-app-infra/docs/`) |
+| **Related documents** | ADR-0001 to ADR-0022, SPEC-SRV-01, Answers Log (2026-10-06), Identity and Access Design v2.2, SPEC-BILL-01 v0.6, Product Backlog v1.9 (`directory-app-infra/docs/`) |
 
 ---
 
@@ -81,14 +81,19 @@ Staff accounts are created by invitation only and must use multi-factor authenti
 | Reviews | Ratings and reviews on profiles, gated until a secret shopper has reviewed the business | Must |
 | Secret shopper program | Random monthly selection, assignments, and survey-based evaluations | Must |
 | Messaging | Visitors send messages to members, who reply through an email relay | Must |
+| In-app notifications | A notification bell for members and staff (approvals, messages, reviews, billing, secret shopper), refreshed every minute, alongside email (ADR-0020) | Must |
 | Activity tracking | Every search, view, and click by users and the public is recorded | Must |
 | Data visualizations | Dashboards for each listing that depend on its tier, an admin dashboard, and limited public charts | Must (business and admin), Should (public) |
+| **Survey insights** | Results of the separate survey app's surveys, shown in BlackPages to businesses (by tier), shoppers, the public (a few charts per state), and admins. The survey app is integrated through APIs, and each of its sites is a BlackPages location (ADR-0022, SPEC-SRV-01). | Must (admin view: Should) |
 | Administration | Search, filter, edit, and approve members. Moderation and audit. | Must |
 | Minimal home page | A search box, a location selector, and navigation | Must |
 
 ### 3.2 Out of scope for the MVP (planned for later releases)
 - Social login and passkeys. These are enabled later through Keycloak with no code migration.
 - Live chat. It isn't planned (Q4). The MVP uses an email relay for messaging.
+- Real-time push to the browser, and notification preferences (post-MVP P.12 and P.13). The MVP refreshes notifications every minute (ADR-0020).
+- **Internal product analytics with PostHog** (funnels, session replay, A/B tests). It's optional and unscheduled (story 11.5, ADR-0021). Customer-facing analytics always use BlackPages' own data.
+- **Surveys that businesses create themselves** (screen S43). Survey insights in the MVP cover the survey app's surveys only (SPEC-SRV-01).
 - Advanced SEO tools: a content editor, a Search Console dashboard, SEO audits, FAQ schema, and "Best X in Y" editorial pages.
 - Metadata that members can edit themselves.
 - **Multiple users per business account** (team invites and an editor role). In the MVP each business account has exactly one user, its owner.
@@ -197,7 +202,7 @@ Within any category, city, or specialty list, results are ordered **Platinum (Aâ
 | Epic | Name | MVP content |
 |---|---|---|
 | E1 | Multi-location foundation | Location and city management, location scoping, a location selector |
-| E2 | Identity and accounts | Keycloak authentication, registration and onboarding, staff invites with MFA, the member dashboard, business team roles |
+| E2 | Identity and accounts | Keycloak authentication, registration and onboarding, staff invites with MFA, the member dashboard (one user per business account), the in-app notification center |
 | E3 | Listing management and rich profiles | Any number of listings per account, media, hours, geocoding, the approval workflow, profile pages |
 | E4 | Categories and browsing | A three-level taxonomy, the directory index, tier ordering, pagination |
 | E5 | Search and maps | Search that combines keyword, category, and city, filters, Google Maps, service areas, map cost controls |
@@ -212,6 +217,7 @@ Within any category, city, or specialty list, results are ordered **Platinum (Aâ
 | E14 | Administration | Operator assignments, member management, bulk actions, audit log, email templates |
 | E15 | Non-functional requirements | Security, performance, accessibility, reliability, privacy |
 | E16 | Messaging | A contact form, spam controls, the member inbox, the reply relay, lead tracking |
+| E18 | Survey insights and survey app integration | APIs between BlackPages and the survey app (sites are locations), syncing responses, summaries with privacy rules, survey charts for businesses, shoppers, the public, and admins, and retiring the MariaDB sync. E17 isn't used. |
 
 The full backlog, with user stories and acceptance criteria, is maintained separately. Appendix A lists the MVP stories.
 
@@ -281,7 +287,7 @@ These estimates exclude usage-based fees from Stripe, Google Maps, and the email
 
 ## 10. Release plan
 
-The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). The timeline is about **24 weeks** from Sprint 0 to launch.
+The plan uses two-week sprints with two BlackPages teams, backend (svc) and frontend (ui), plus the **survey app team** for its own changes (E18). The timeline is about **26 weeks** from Sprint 0 to launch.
 
 | Sprint | Theme | Main stories | Milestone |
 |---|---|---|---|
@@ -291,12 +297,13 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 |  |
 | **4** | SEO, search, and observability | 5.1, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8a, 15.4 | **R1: internal alpha** in Arizona |
 | **5** | Monetization core | 7.1, 7.3, 7.6, 7.13, 8.1, 8.2, 11.1, 13.1, 13.3 |  |
-| **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3 | **R2: paid beta** with Arizona businesses |
-| **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6 |  |
-| **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5 |  |
-| **9** | Administration and analytics | 2.5, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8 |  |
-| **10** | Should-have items | 2.21, 4.8, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | Can move after the MVP (saves about 2 weeks) |
-| **11** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | **R3: public MVP launch in Arizona** |
+| **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3, 18.18 | **R2: paid beta** with Arizona businesses |
+| **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6, 18.3, 18.4 |  |
+| **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5, 18.1, 18.2, 18.5 |  |
+| **9** | Administration, analytics, and notifications | 2.5, 2.23, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8, 18.6, 18.15 |  |
+| **10** | Should-have items | 2.21, 4.8, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.4, 14.4, 14.6, 16.5, 16.7 | Can move after the MVP (saves about 2 weeks) |
+| **11** | Survey insights | 12.3, 18.7, 18.8, 18.9, 18.10, 18.11, 18.12, 18.13 |  |
+| **12** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | **R3: public MVP launch in Arizona** |
 
 ### 10.1 Sequencing rationale
 - **Identity and the entitlement engine come first**, because profiles, messaging, analytics, and billing all depend on them.
@@ -360,6 +367,7 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | Q16 | *Resolved:* the default Silver listing is charged the Silver price, and discounts apply to it like any other Silver listing. | E7 |
 | Q17 | *Resolved:* not applicable. The default listing is an ordinary paid listing, so an upgrade charges the prorated difference. | E7 |
 | Q19 | *Resolved:* only the business account owner can upgrade or downgrade listings. | E7 |
+| Q20 | **Survey app integration:** see SPEC-SRV-01 OQ-S1 to OQ-S7. **The most urgent is OQ-S5: which team owns the survey app changes, and its repository.** OQ-S4 (survey consent at onboarding) is needed before Sprint 8. | E18 |
 | Q18 | Is the secret shopper pool 1 in 100 **business accounts** (proposed, so businesses with many listings aren't favored) or 1 in 100 **listings** (the original brief's wording)? | E10 |
 
 ---
@@ -373,8 +381,12 @@ The plan uses two-week sprints with two teams, backend (svc) and frontend (ui). 
 | Listings move down when a free offer ends | Revenue falls short of forecasts | A card is always on file, because the service fee is always charged. Send a reminder 7 days before the full price is first charged. Always show the price after the discount. |
 | Card fees on small charges | An account whose listings are all discounted to $0 pays only the $1 fee, and standard card fees take about a third of it | **Decided (Q1):** bill the service fee annually ($12) during $0 offers, and accept the remaining cost as a cost of acquisition |
 | Google Maps usage costs | Unexpected bills | Restricted API keys, loading maps only when needed, static maps in lists, usage alerts |
+| Survey email limit | The survey app sends at most 85 emails a day (Mailgun free tier), so a survey to 2,000 members takes about 24 days | Story 18.15: a paid plan or Postmark before the first live survey |
+| Retiring the Brilliant Directories sync | Survey responses could be lost or miscounted during the switch | Run in parallel with a daily comparison, and switch off only after 2 clean survey cycles (story 18.16) |
+| Identifying survey respondents | Small groups could reveal who answered | A minimum group size of 5 everywhere except the admin console, free text never public, responses stored pseudonymously (SPEC-SRV-01) |
 | Thin-content SEO penalties | Pages rank poorly | Threshold for indexing dynamic pages, and schema markup that reflects each listing's tier |
 | Keycloak operations and upgrades | Security exposure if patches are missed | Pinned versions, configuration as code, a quarterly upgrade window, staging first, a login end-to-end suite |
+| **Backend capacity** | The plan needs about 371 backend points, but 4 backend developers at 20 hours a week deliver about 290 in 26 weeks, so the backend could be about 80 points short | Measure velocity per side at the end of Sprint 2. If behind: move Should items after launch, then have frontend developers take simple backend stories, then extend the timeline (backlog section 3, "Team and capacity") |
 | Cost of the 95% coverage target | Slower delivery | Keep logic out of page files, test with builders and fakes, exclude only generated code and configuration |
 | Coordination between two teams | API integration delays | Contract-first spec pull requests, MSW mocks, versioned client packages |
 
@@ -419,6 +431,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 2.20 | Logout | M | 2 |
 | 2.21 | Hardened staff authentication flow | S | 10 |
 | 2.22 | Keycloak in AWS | M | 0 |
+| 2.23 | In-app notification center | M | 9 |
 | 3.1 | Create a listing | M | 2 |
 | 3.2 | Website and social links for Platinum listings | M | 6 |
 | 3.3 | Add more listings | M | 6 |
@@ -438,7 +451,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 4.7 | Tag a listing with specialties | M | 2 |
 | 4.8 | Category requests and "notify me when found" | S | 10 |
 | 5.1 | Search | M | 4 |
-| 5.2 | Search autocomplete | S | 11 |
+| 5.2 | Search autocomplete | S | 12 |
 | 5.3 | Map view | M | 6 |
 | 5.5 | Search filters | M | 4 |
 | 5.7 | Service area | M | 6 |
@@ -454,7 +467,7 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 6.8a | Core schema markup | M | 4 |
 | 6.8b | Schema for reviews, service area, and tier | M | 8 |
 | 6.9 | Metadata overrides | S | 10 |
-| 6.12 | Search Console setup | M | 11 |
+| 6.12 | Search Console setup | M | 12 |
 | 7.1 | Configure listing tiers and account pricing | M | 5 |
 | 7.2 | Discount engine | M | 6 |
 | 7.3 | Sign up and pay | M | 5 |
@@ -484,12 +497,13 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 10.6 | Survey configuration | S | 10 |
 | 10.7 | Program dashboard | S | 10 |
 | 11.1 | Track user activity | M | 5 |
-| 11.2 | Event storage and aggregates | M | 7 |
+| 11.2 | Event storage, partitions, and summary tables | M | 7 |
 | 11.3 | Cookie consent | M | 6 |
-| 11.4 | Bot filtering | S | 11 |
+| 11.4 | Bot filtering | S | 12 |
+| 11.5 | Internal product analytics with PostHog (optional) | C | TBD |
 | 12.1 | Business dashboards by listing tier | M | 9 |
 | 12.2 | Admin analytics dashboard | M | 9 |
-| 12.3 | Public charts | S | 10 |
+| 12.3 | Public charts | S | 11 |
 | 12.4 | Shopper dashboard | S | 10 |
 | 13.1 | Home page | M | 5 |
 | 13.2 | Responsive and accessible design | M | 2 |
@@ -501,9 +515,9 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 14.4 | Audit log | S | 10 |
 | 14.5 | Email templates | M | 9 |
 | 14.6 | Bulk moderation | S | 10 |
-| 15.1 | Performance budgets | M | 11 |
-| 15.2 | Accessibility audit | M | 11 |
-| 15.3 | Security testing | M | 11 |
+| 15.1 | Performance budgets | M | 12 |
+| 15.2 | Accessibility audit | M | 12 |
+| 15.3 | Security testing | M | 12 |
 | 15.4 | Observability | M | 4 |
 | 15.5 | Privacy compliance | M | 9 |
 | 16.1 | Contact form | M | 7 |
@@ -514,6 +528,23 @@ The full backlog, with user stories and acceptance criteria, is in `docs/product
 | 16.6 | Messaging by listing tier | M | 7 |
 | 16.7 | Report and block senders | S | 10 |
 | 16.8 | Message leads in analytics | M | 9 |
+| 18.1 | Locations integration API | M | 8 |
+| 18.2 | Survey recipients integration API and consent | M | 8 |
+| 18.3 | Keycloak clients for the survey integration | M | 7 |
+| 18.4 | Survey app: sites from BlackPages locations | M | 7 |
+| 18.5 | Survey app: recipients from BlackPages | M | 8 |
+| 18.6 | Survey app: integration API | M | 9 |
+| 18.7 | Survey insights: sync jobs and response copy | M | 11 |
+| 18.8 | Survey result summaries with privacy rules | M | 11 |
+| 18.9 | Survey insight entitlements | M | 11 |
+| 18.10 | Survey insights screen for businesses | M | 11 |
+| 18.11 | Survey insights screen for shoppers | M | 11 |
+| 18.12 | Public survey highlights | M | 11 |
+| 18.13 | Survey analytics for admins | S | 11 |
+| 18.15 | Survey app: email capacity | M | 9 |
+| 18.16 | Retire the MariaDB sync | M | TBD |
+| 18.17 | Survey app admin login through Keycloak | S | TBD |
+| 18.18 | Survey app platform and link hardening | M | 6 |
 
 ---
 

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 1.0 |
+| **Version** | 1.3 (2026-10-06: `/api/integration/` paths for service-to-service calls, ADR-0022. v1.2: section 12.2, the activity events endpoint and its CSRF exemption, ADR-0021. v1.1: section 12.1, polling and notifications.) |
 | **Date** | 2026-09-30 |
 | **Status** | Draft for review by both tech leads before Sprint 1 |
 | **Applies to** | `contract/openapi.yaml` in `directory-app-svc`, and every endpoint the backend serves |
@@ -47,8 +47,9 @@ Both teams follow these rules when designing and reviewing the API contract. The
 | `/api/` (no prefix) | Signed-in members | Session | `/api/listings/{listingId}`, `/api/business-accounts/{accountId}/listings` |
 | `/api/admin/` | Staff only (MFA verified) | Session plus staff role | `/api/admin/listings/pending`, `/api/admin/listing-tiers` |
 | `/api/webhooks/` | Stripe and Postmark | Signature verification, **not** a session | `/api/webhooks/stripe`, `/api/webhooks/postmark` |
+| `/api/integration/v1/` | **Other services**, such as the survey app (ADR-0022) | **Keycloak client-credentials bearer token** with the required client role. **No session, cookies, or CSRF.** | `/api/integration/v1/locations`, `/api/integration/v1/survey-recipients` |
 
-Webhook and OAuth callback endpoints aren't part of the public contract that the client is generated from. They're documented in a separate `openapi-internal.yaml`.
+Webhook and OAuth callback endpoints aren't part of the public contract that the client is generated from. They're documented in a separate `openapi-internal.yaml`. **Integration endpoints** have their own contract, `contract/openapi-integration.yaml`, versioned in the path (`/v1/`), because other teams build against them. Breaking changes need a `/v2/` path running alongside `/v1/` until callers have moved.
 
 ### 3.2 Naming
 - **Plural nouns**, **kebab-case** segments: `/business-accounts`, `/listing-tiers`, `/secret-shopper-assignments`.
@@ -193,6 +194,7 @@ Some codes add more fields, for example `entitlement`, `limit`, `used`, `upgrade
 | `ENTITLEMENT_LIMIT_REACHED` | 422 | A tier limit has been reached, such as the gallery photo limit |
 | `BUSINESS_RULE_VIOLATED` | 422 | Another business rule is broken. `detail` explains it, and `rule` gives the rule ID, for example `BR-PE-06` (can't delete the last listing). |
 | `IDEMPOTENCY_KEY_REUSED` | 422 | The same `Idempotency-Key` was used with a different request body |
+| `PAYLOAD_TOO_LARGE` | 413 | The request body is over the endpoint's size limit (for example, more than 50 events or 32 KB on `/api/public/events`) |
 | `RATE_LIMITED` | 429 | Too many requests. See `Retry-After`. |
 | `UPSTREAM_UNAVAILABLE` | 503 | A dependency (Stripe, Keycloak, Postmark, Google) isn't available. It's safe to retry later. |
 | `INTERNAL_ERROR` | 500 | An unexpected error. Use `traceId` to report it. |
@@ -243,7 +245,7 @@ Some codes add more fields, for example `entitlement`, `limit`, `used`, `upgrade
 ## 11. Security rules for every operation
 1. **Each operation's description** in the contract states who can call it: for example, "Owner of the listing's business account" or "Admin; site operator for assigned locations".
 2. **Every operation has an entry in `authz-matrix.yaml`.** CI fails if one is missing (ADR-0007, backlog 2.12).
-3. **Calls that change data** from the browser must send `X-XSRF-TOKEN`. Webhooks are exempt and verified by signature instead.
+3. **Calls that change data** from the browser must send `X-XSRF-TOKEN`. There are **two exemptions**: webhooks, which are verified by signature, and **`POST /api/public/events`**, which is protected in other ways (section 12.2.4).
 4. **Out of scope means 404,** never 403 (ADR-0007).
 5. **Owner-only operations** (tier changes, adding or removing listings, billing) state this explicitly (SPEC-BILL-01, BR-PE-38).
 6. **Rate limits** apply to login, public forms, search, reviews, and messaging. Responses include `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset`, and 429 responses include `Retry-After`.
@@ -258,6 +260,90 @@ Some codes add more fields, for example `entitlement`, `limit`, `used`, `upgrade
 - Outcomes that depend on Stripe, such as an upgrade waiting for payment, return the **current known state** of the listing, including the pending change. The UI refreshes when the payment is confirmed.
 
 ---
+
+### 12.1 Polling and notifications (ADR-0020)
+There's **no push channel** in the MVP. Endpoints that clients poll follow these rules:
+- **Conditional requests:** they return an `ETag`. Clients send `If-None-Match`, and an unchanged response is **`304 Not Modified`** with no body.
+- **Cheap summaries:** where clients poll for a count, the response includes it directly. For example, `GET /api/notifications?limit=10` returns `{ "items": [...], "unreadCount": 3, "nextCursor": "…" }`.
+- **Polling rates:** clients poll **no more than once every 60 seconds** per endpoint, except the short checkout confirmation poll (every 2 seconds for up to 30 seconds). Rate limits allow for this.
+- **Notification endpoints:**
+
+  | Endpoint | Purpose |
+  |---|---|
+  | `GET /api/notifications` | The current user's notifications, newest first. Cursor-paginated, with optional `unreadOnly=true`. |
+  | `POST /api/notifications/{notificationId}/read` | Mark one notification as read. Returns 204. |
+  | `POST /api/notifications/read-all` | Mark all as read. Returns 204. |
+
+  A notification is `{ "notificationId", "type", "title", "message", "link", "createdAt", "readAt"? }`, where `type` is UPPER_SNAKE_CASE, for example `LISTING_APPROVED` or `MESSAGE_RECEIVED`. **Users only ever see their own notifications.** Any other ID returns 404.
+
+### 12.2 Activity events: `POST /api/public/events` (ADR-0011, ADR-0021)
+
+The web app reports website activity here: views, clicks, contact reveals, and map use. **Searches and message leads aren't sent from the browser.** The backend records them itself (System Overview, section 8.14).
+
+#### 12.2.1 Request
+
+| Item | Rule |
+|---|---|
+| Method and path | `POST /api/public/events` |
+| How it's sent | `navigator.sendBeacon`, or `fetch` with `keepalive: true` as a fallback. Events are **batched**: sent every **5 seconds**, at **20 events**, and when the page is hidden (`visibilitychange` or `pagehide`). |
+| Content type | `application/json`. `text/plain` containing JSON is also accepted, because some browsers send beacons that way. |
+| Size limits | Up to **50 events** and **32 KB** per request. Larger requests get **413 `PAYLOAD_TOO_LARGE`**. |
+| Authentication | None required. If a session cookie arrives, the backend adds the **user ID** itself. **The body never contains a user ID, email, or name**, and any such field is ignored. |
+| Consent | The web app sends events **only after the visitor accepts analytics cookies** (story 11.3). Counting anonymous totals without consent is an open question (T1). |
+
+**Body**
+```json
+{
+  "analyticsSessionId": "6f1d2c3b-8a9e-4f70-b1c2-d3e4f5a6b7c8",
+  "events": [
+    {
+      "eventId": "0b8c7d6e-5f4a-4b3c-9d2e-1f0a9b8c7d6e",
+      "name": "LISTING_VIEW",
+      "occurredAt": "2026-10-06T18:02:11.483Z",
+      "path": "/member/acme-plumbing-phoenix",
+      "referrerHost": "www.google.com",
+      "listingId": "4f7c2a9e-3b1d-4c55-9a0e-1d2f3b4c5d6e",
+      "categoryId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "cityId": "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+      "props": { "source": "SEARCH_RESULTS", "position": 3 }
+    }
+  ]
+}
+```
+
+| Field | Required | Rule |
+|---|---|---|
+| `analyticsSessionId` | Yes | A random UUID created by the web app after consent, stored in a first-party cookie (`bp_asid`). It expires after **30 minutes without activity**. It isn't linked to the login session. |
+| `eventId` | Yes | A UUID created by the web app. The backend **ignores repeated event IDs**, so a retried beacon is never counted twice. |
+| `name` | Yes | An UPPER_SNAKE_CASE name **from the event list** (story 0.5), for example `PAGE_VIEW`, `CATEGORY_VIEW`, `LISTING_VIEW`, `CONTACT_REVEAL`, `CLICK_TO_CALL`, `WEBSITE_CLICK`, `MAP_INTERACTION`. Unknown names are dropped. |
+| `occurredAt` | Yes | When it happened, from the browser's clock. The backend also stores when it was **received**, and **replaces** `occurredAt` with the received time if it's more than 24 hours off. |
+| `path` | Yes | The page path **without query strings**, except the filter parameters the event list allows. Never a full URL. |
+| `referrerHost` | No | The referring **host name only**, for example `www.google.com` |
+| `listingId`, `categoryId`, `cityId` | Depends on the event | As required by the event list. Unknown IDs are dropped. |
+| `props` | No | Only the **keys the event list allows for that event**, with short values: strings up to 100 characters, numbers, and booleans. Anything else is removed. |
+
+#### 12.2.2 Response
+- **`202 Accepted`** with no body, when the batch is well-formed. **Events that fail validation are dropped one at a time**: the rest of the batch is still accepted, and the number dropped is recorded in backend metrics. Beacons ignore responses, so there's no detail to return.
+- `400 VALIDATION_FAILED` when the body isn't valid JSON, or `analyticsSessionId` or `events` is missing.
+- `413 PAYLOAD_TOO_LARGE` and `429 RATE_LIMITED`, as in section 8.1.
+- The endpoint **never returns personal data**, and is never cached (`Cache-Control: no-store`).
+
+#### 12.2.3 Processing guarantees
+- **Best effort, and not part of the outbox.** Events are queued in memory and inserted in batches (System Overview, section 8.14). A small loss is acceptable if a backend task crashes, and is preferable to slowing pages down. Analytics must never block or fail a user's action.
+- **No duplicates:** event IDs are de-duplicated across a 24-hour window.
+
+#### 12.2.4 CSRF exemption and how the endpoint is protected instead
+`sendBeacon` **can't set custom headers**, so these requests can't carry `X-XSRF-TOKEN`. The endpoint is therefore **excluded from CSRF checks** in the Spring Security configuration (`csrf.ignoringRequestMatchers("/api/public/events")`, next to the webhook paths). It's protected in other ways:
+
+| Protection | Rule |
+|---|---|
+| **The request must come from our own site** | Requests are accepted only when `Sec-Fetch-Site` is `same-origin`, or, if that header is missing, when `Origin` or `Referer` is our own site. **Other requests are dropped silently** with 202, so they learn nothing. |
+| **Nothing else can change** | The endpoint **only adds analytics rows**. It can't change accounts, listings, billing, or anything else. A forged request can at most add analytics noise, which the next two rules limit. |
+| **Rate limits** | **60 requests per minute per IP address**, and **120 events per minute per `analyticsSessionId`**. Excess requests get 429, and the extra events are dropped. |
+| **Strict validation** | Only names, fields, and `props` keys from the event list are kept, with the size limits in section 12.2.1 |
+| **Bots** | Known bots and crawlers (by user agent, plus lists of known bot IP ranges) are dropped or marked, so they're excluded from dashboards (story 11.4) |
+| **The user ID comes only from the session cookie** | A forged request can't attribute events to another user |
+| **Authorization matrix** | The endpoint is listed as public in `authz-matrix.yaml` (story 2.12), with a note pointing to this section |
 
 ## 13. Versioning and deprecation
 - **No version number in URLs.** The contract evolves additively.
@@ -382,6 +468,7 @@ Use this list for every pull request to the contract:
 - [ ] All error responses use `Problem`, and every code is in the catalog (section 8)
 - [ ] Editable resources include `version`. Charge-creating calls require `Idempotency-Key`.
 - [ ] The description states who may call it. An `authz-matrix.yaml` entry is planned.
+- [ ] Any endpoint exempt from CSRF checks is listed in section 11, with the protections that replace them (as in section 12.2.4)
 - [ ] Examples are present and realistic (they feed the MSW mocks)
 - [ ] openapi-diff shows no breaking change, or the breaking change follows section 13
 - [ ] No personal data beyond what's needed, and no internal IDs (Stripe, Keycloak)

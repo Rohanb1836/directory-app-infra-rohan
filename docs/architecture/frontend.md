@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Version** | 1.0 |
+| **Version** | 1.2 (2026-10-06: section 12 now describes event batching and the analytics session cookie, ADR-0021. v1.1: section 5.5, keeping data fresh and the notification bell.) |
 | **Date** | 2026-09-30 |
 | **Status** | Draft for review by the `directory-app-ui` tech lead before Sprint 1 |
 | **Repository** | `directory-app-ui` |
-| **Related** | ADR-0002 (Next.js), ADR-0006 (sessions), ADR-0007 (authorization), ADR-0012 (contract-first API), ADR-0019 (frontend platform), System Overview v1.2, API Style Guide v1.0, Identity and Access Design v2.2, SPEC-BILL-01 v0.5 |
+| **Related** | ADR-0002 (Next.js), ADR-0006 (sessions), ADR-0007 (authorization), ADR-0012 (contract-first API), ADR-0019 (frontend platform), ADR-0020 (backend events and the UI), ADR-0021 (analytics), System Overview v1.2, API Style Guide v1.0, Identity and Access Design v2.2, SPEC-BILL-01 v0.5 |
 
 This document describes **how the web app is built**: rendering, data access, authentication in the UI, error handling, SEO, analytics, styling, the Keycloak login theme, testing, and deployment. The backend is the authority for every business rule. The frontend's job is to present data well, quickly, and accessibly.
 
@@ -137,6 +137,23 @@ flowchart LR
 - The same handlers are used in unit tests and in local development (`npm run dev:mock`).
 - Before a story is done, the UI switches to the published client version and passes the Playwright tests against the pinned backend image.
 
+### 5.5 Keeping data fresh, and notifications (ADR-0020)
+The backend doesn't push anything to the browser in the MVP. The UI stays up to date like this:
+
+| Data | How it's refreshed |
+|---|---|
+| Anything the user just changed | The mutation's response, then `invalidateQueries` for related keys |
+| **Notification bell** (unread count and latest items) | `useNotifications()` refreshes **every 60 seconds**, **when the tab regains focus**, and after the user's own changes. Requests send `If-None-Match`, so most return `304`. Refreshing **pauses while the tab is hidden**. |
+| Dashboard widgets, the inbox list, admin queues (approvals, moderation) | Refresh when the tab regains focus, and every **2 minutes** while visible |
+| **Checkout return page** and pending tier changes | Poll the account or listing every **2 seconds, for up to 30 seconds**, until the Stripe webhook has been processed. After that, show "We're confirming your payment. This can take a minute." with a refresh button. |
+| Public pages | Rebuilt by the backend (section 5.3). No polling. |
+
+**The notification bell** (`features/notifications`, story 2.23):
+- It's in the header of every signed-in page. Signed-in elements on public pages load in the browser, as described in section 4.
+- It shows the unread count. The panel lists recent notifications, each linking to the relevant page. Users can mark one or all as read.
+- New notifications are announced politely to screen readers (`aria-live="polite"`). The count never relies on color alone.
+- **Later (P.12):** a Server-Sent Events stream can replace the 60-second refresh. The hook's interface stays the same, so no components change.
+
 ---
 
 ## 6. Authentication and authorization in the UI
@@ -232,7 +249,13 @@ Every API error is an RFC 9457 Problem Details body with a stable `code` (API St
 
 ## 12. Analytics, consent, and observability
 - **Consent:** a consent banner (backlog 11.3) stores the visitor's choice. **No non-essential tracking runs until they opt in.**
-- **Event tracking:** `features/analytics` sends events defined in the event taxonomy (story 0.5) to `POST /api/public/events` with `navigator.sendBeacon`, so tracking never slows the page. Events carry IDs, never emails or names.
+- **Event tracking:** `features/analytics` sends events from the event list (story 0.5) to **`POST /api/public/events`**. The full contract is in API Style Guide section 12.2.
+  - **Batching:** events are queued in memory and sent every **5 seconds**, at **20 events**, and when the page is hidden (`visibilitychange` or `pagehide`), using `navigator.sendBeacon`, with `fetch(…, { keepalive: true })` as a fallback.
+  - **Each event** gets an `eventId` (a UUID), so the backend can ignore retried duplicates. It carries only the fields and `props` keys the event list allows: page **paths** without query strings, and **host names** only for referrers.
+  - **The analytics session** is a random UUID in the first-party `bp_asid` cookie. It's created **only after consent**, expires after **30 minutes without activity**, and isn't linked to the login session.
+  - **Not sent from the browser:** searches and message leads, which the backend records itself, and anything identifying a user. The backend adds the user ID from the session cookie.
+  - **Never blocks the user:** tracking errors are swallowed and never shown. If the visitor withdraws consent, the queue is cleared and the cookie deleted.
+- **Internal product analytics (optional, ADR-0021):** if PostHog is adopted (story 11.5, unscheduled), the same `track()` calls are also sent to PostHog after consent, with session replay masked. PostHog is **never** the source of any number shown to customers.
 - **Visitor state for demand tracking:** pending to-do T10. If approved, the **backend** derives the visitor's state from CloudFront headers, so the frontend sends nothing extra.
 - **Logging:** structured JSON logs from the Next.js server, with a request ID and trace ID.
 - **Tracing:** the server-side API client forwards W3C `traceparent` headers so a page render can be followed into the backend (System Overview, section 8.9).
@@ -299,6 +322,7 @@ Route files (`page.tsx`, `layout.tsx`) are excluded from unit coverage and cover
 
 ## 18. Open items
 - **T3 (profile switching):** affects `/api/auth/me`, the header, and route protection.
+- **P.12 (real-time push):** a later option. Section 5.5 keeps the notification hook's interface stable so it can be swapped in.
 - **T10 (demand by state):** affects only the backend and privacy text. Possibly a "notify me when we launch" form in the location selector.
 - **Q8 (specialty URL pattern):** affects the route structure under `directory/`.
 - **Design system and screen mockups:** needed before Sprint 2 and Sprint 3 (see the documentation plan).

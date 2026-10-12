@@ -1,7 +1,7 @@
 # Identity and Access Design
 
 - **Status:** Accepted
-- **Version:** 2.2 (2026-09-30: Spring Boot 4.1, Spring Security 7, and Java 25 per ADR-0018. Earlier in v2.1: one user per business account.)
+- **Version:** 2.3 (2026-10-06: service-to-service clients and the bearer-token filter chain for the survey app integration, ADR-0022. v2.2, 2026-09-30: Spring Boot 4.1, Spring Security 7, and Java 25 per ADR-0018. Earlier in v2.1: one user per business account.)
 - **Date:** 2026-09-27
 - **Decisions:** ADR-0005 (Keycloak), ADR-0006 (sessions), ADR-0007 (authorization), ADR-0016 (Keycloak deployment)
 - **Replaces:** Version 1 (local authentication with Spring Security) and the Keycloak migration plan (the former epic E17, now cancelled)
@@ -83,6 +83,17 @@ On `blackpages-bff`:
 - The post-logout redirect URI is `{APP_BASE_URL}/`.
 - Back-channel logout is enabled, and the session ID is required.
 - There are no web origins, because the browser never calls Keycloak with CORS.
+
+### Service-to-service clients (ADR-0022)
+
+| Client | Purpose | Client roles |
+|---|---|---|
+| `blackpages-integration-api` | Represents BlackPages' `/api/integration/**` endpoints | Defines `directory.locations.read` and `directory.recipients.read` |
+| `survey-app-svc` | The survey app. It's a resource server for its own integration API, and its service account calls BlackPages. | Defines `survey.read` and `survey.respondents.anonymize`. Its service account holds `directory.locations.read` and `directory.recipients.read`. |
+| `blackpages-survey-reader` | The BlackPages backend calling the survey app | Its service account holds `survey.read` and `survey.respondents.anonymize` |
+
+- BlackPages adds a **second Spring Security filter chain** for `/api/integration/**`. It's an OAuth2 **resource server** that validates Keycloak access tokens and checks client roles. **No session or CSRF applies**, and it never falls back to the browser session chain.
+- Secrets are in Secrets Manager, and are placeholders in the local realm file.
 
 ### Roles and groups
 - **Realm role `staff`:** assigned by the application when a user is granted ADMIN or SITE_OPERATOR, and removed when the last staff role is revoked. It drives MFA enforcement (section 5.4).

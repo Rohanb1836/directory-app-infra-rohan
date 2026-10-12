@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Version** | 1.6 |
+| **Version** | 1.9 |
 | **Date** | 2026-09-30 |
-| **Status** | Ready for sprint planning, subject to the open questions in section 7. **v1.1:** Silver, Gold, and Platinum are now listing tiers, not account plans. **v1.2:** the default Silver listing is charged and discounted like any other listing, and owners can upgrade or downgrade every listing. **v1.3:** only the owner changes tiers, and each business account has one user. **v1.4:** shopper accounts always have a price, discounts apply to it, and the $1 fee is additional. **v1.5:** backend on Spring Boot 4.1 and Java 25 (ADR-0018), with a new compatibility spike (0.7). **v1.6:** answers to Q1–Q15 applied (see `docs/product/answers-log.md`). |
-| **Companion documents** | MVP Definition v1.10, SPEC-BILL-01 v0.6, ADR-0018 (`docs/product/mvp.md`), ADR-0001 to ADR-0016, Identity and Access Design v2.0 |
+| **Status** | Ready for sprint planning, subject to the open questions in section 7. **2026-10-06:** team capacity and the Sprint 2 checkpoint added to section 3. **v1.1:** Silver, Gold, and Platinum are now listing tiers, not account plans. **v1.2:** the default Silver listing is charged and discounted like any other listing, and owners can upgrade or downgrade every listing. **v1.3:** only the owner changes tiers, and each business account has one user. **v1.4:** shopper accounts always have a price, discounts apply to it, and the $1 fee is additional. **v1.5:** backend on Spring Boot 4.1 and Java 25 (ADR-0018), with a new compatibility spike (0.7). **v1.6:** answers to Q1–Q15 applied (see `docs/product/answers-log.md`). **v1.7:** new story 2.23, an in-app notification center (ADR-0020). **v1.8:** activity tracking detailed (11.1, 11.2), and an optional, unscheduled PostHog story (11.5, ADR-0021). **v1.9:** new epic E18 (survey insights and survey app integration, ADR-0022, SPEC-SRV-01), a new Sprint 11, and hardening moved to Sprint 12. |
+| **Companion documents** | MVP Definition v1.13, SPEC-BILL-01 v0.6, ADR-0018, ADR-0020, ADR-0021, ADR-0022, SPEC-SRV-01 (`docs/product/mvp.md`), ADR-0001 to ADR-0016, Identity and Access Design v2.0 |
 | **Repositories** | `directory-app-svc` (backend), `directory-app-ui` (frontend), `directory-app-infra` (infrastructure) |
 
 ---
@@ -39,7 +39,7 @@
 |---|---|---|---|---|---|---|
 | [E0](#e0) | Foundation (Sprint 0) | 7 | 26 | 0 | 0 | 26 |
 | [E1](#e1) | Multi-Location Foundation | 5 | 23 | 0 | 0 | 23 |
-| [E2](#e2) | Identity and Accounts | 19 | 69 | 6 | 0 | 75 |
+| [E2](#e2) | Identity and Accounts | 20 | 74 | 6 | 0 | 80 |
 | [E3](#e3) | Listing Management and Rich Profiles | 10 | 38 | 0 | 0 | 38 |
 | [E4](#e4) | Categories and Browsing | 8 | 23 | 5 | 0 | 28 |
 | [E5](#e5) | Search and Maps | 7 | 31 | 3 | 0 | 34 |
@@ -48,42 +48,55 @@
 | [E8](#e8) | Payment Processing | 4 | 13 | 6 | 0 | 19 |
 | [E9](#e9) | Reviews | 5 | 15 | 3 | 0 | 18 |
 | [E10](#e10) | Secret Shopper Program | 7 | 21 | 13 | 0 | 34 |
-| [E11](#e11) | Activity Tracking | 4 | 16 | 2 | 0 | 18 |
+| [E11](#e11) | Activity Tracking | 5 | 16 | 2 | 3 | 21 |
 | [E12](#e12) | Data Visualizations | 4 | 13 | 8 | 0 | 21 |
 | [E13](#e13) | Home Page and Public UX | 4 | 10 | 0 | 0 | 10 |
 | [E14](#e14) | Administration and Site Operations | 6 | 16 | 6 | 0 | 22 |
 | [E15](#e15) | Non-Functional Requirements | 5 | 17 | 0 | 0 | 17 |
 | [E16](#e16) | Messaging | 8 | 22 | 6 | 0 | 28 |
-| | **Total** | **126** | **432** | **64** | **0** | **496** |
+| [E18](#e18) | Survey Insights and Survey App Integration | 17 | 57 | 10 | 0 | 67 |
+| | **Total** | **145** | **494** | **74** | **3** | **571** |
 
 ## 3. Sprint plan
 
-Sprints are two weeks long. The plan runs about **24 weeks** from Sprint 0 to launch.
+Sprints are two weeks long. The plan runs about **26 weeks** from Sprint 0 to launch (Sprint 11, survey insights, was added in v1.9).
 
-| Sprint | Theme | Stories | Points | Milestone |
-|---|---|---|---|---|
-| **0** | Foundation | 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 2.11, 2.16, 2.22 | 37 |  |
-| **1** | Locations and identity | 1.1, 1.3, 2.1, 2.3, 2.4, 2.12, 2.14, 2.15, 2.17, 2.18 | 44 |  |
-| **2** | Listings, taxonomy, and entitlements | 1.2, 1.5, 2.2, 2.17, 2.20, 3.1, 3.4, 3.5, 4.1, 4.6, 4.7, 7.10, 13.2 | 45 |  |
-| **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 | 43 |  |
-| **4** | SEO, search, and observability | 5.1, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8a, 15.4 | 46 | **R1: internal alpha** in Arizona |
-| **5** | Monetization core | 7.1, 7.3, 7.6, 7.13, 8.1, 8.2, 11.1, 13.1, 13.3 | 47 |  |
-| **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3 | 42 | **R2: paid beta** with Arizona businesses |
-| **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6 | 42 |  |
-| **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5 | 38 |  |
-| **9** | Administration and analytics | 2.5, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8 | 39 |  |
-| **10** | Should-have items | 2.21, 4.8, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.3, 12.4, 14.4, 14.6, 16.5, 16.7 | 56 | Can move after the MVP (saves about 2 weeks) |
-| **11** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | 17 | **R3: public MVP launch in Arizona** |
+| Sprint | Theme | Stories | BlackPages pts | Survey app pts | Milestone |
+|---|---|---|---|---|---|
+| **0** | Foundation | 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 2.11, 2.16, 2.22 | 37 | — |  |
+| **1** | Locations and identity | 1.1, 1.3, 2.1, 2.3, 2.4, 2.12, 2.14, 2.15, 2.17, 2.18 | 44 | — |  |
+| **2** | Listings, taxonomy, and entitlements | 1.2, 1.5, 2.2, 2.17, 2.20, 3.1, 3.4, 3.5, 4.1, 4.6, 4.7, 7.10, 13.2 | 45 | — |  |
+| **3** | Rich profiles, approval, and staff security | 1.4, 2.8, 2.9, 2.19, 3.6, 3.7, 3.8, 3.10, 4.2, 4.3, 4.4, 4.5 | 43 | — |  |
+| **4** | SEO, search, and observability | 5.1, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8a, 15.4 | 46 | — | **R1: internal alpha** in Arizona |
+| **5** | Monetization core | 7.1, 7.3, 7.6, 7.13, 8.1, 8.2, 11.1, 13.1, 13.3 | 47 | — |  |
+| **6** | Discounts, upgrades, and maps | 3.2, 3.3, 5.3, 5.7, 7.2, 7.4, 7.5, 7.7, 7.11, 7.12, 11.3, 18.18 | 42 | 3 | **R2: paid beta** with Arizona businesses |
+| **7** | Service areas and messaging | 2.6, 3.9, 5.8, 5.9, 11.2, 16.1, 16.2, 16.3, 16.4, 16.6, 18.3, 18.4 | 44 | 5 |  |
+| **8** | Reviews and secret shopper | 6.8b, 9.1, 9.2, 9.3, 9.4, 10.1, 10.3, 10.4, 10.5, 18.1, 18.2, 18.5 | 46 | 5 |  |
+| **9** | Administration, analytics, and notifications | 2.5, 2.23, 12.1, 12.2, 13.4, 14.1, 14.2, 14.3, 14.5, 15.5, 16.8, 18.6, 18.15 | 44 | 8 |  |
+| **10** | Should-have items | 2.21, 4.8, 6.9, 7.8, 8.3, 8.4, 9.5, 10.2, 10.6, 10.7, 12.4, 14.4, 14.6, 16.5, 16.7 | 51 | — | Can move after the MVP (saves about 2 weeks) |
+| **11** | Survey insights | 12.3, 18.7, 18.8, 18.9, 18.10, 18.11, 18.12, 18.13 | 33 | — |  |
+| **12** | Hardening and launch | 5.2, 6.12, 11.4, 15.1, 15.2, 15.3 | 17 | — | **R3: public MVP launch in Arizona** |
 
-Story 2.17 (the Keycloak theme) spans Sprints 1 and 2, so its points are split between them. Story 7.13 (sales tax) isn't scheduled until Q12 is decided.
+Story 2.17 (the Keycloak theme) spans Sprints 1 and 2, so its points are split between them. **Story 11.5 (PostHog) is optional and deliberately unscheduled** (ADR-0021). Stories 18.16 (retiring the MariaDB sync, timed to the Brilliant Directories switch-off) and 18.17 (survey admin login through Keycloak) are also unscheduled.
 
-**Capacity note:** these totals combine both teams. With each team running at roughly 20–25 points a sprint, Sprints 1–9 sit at 38–46 combined points. Sprint 10 is intentionally overloaded because it contains only Should items, which can be trimmed or moved after the MVP.
+**Capacity note:** *BlackPages pts* combine the backend and frontend teams. *Survey app pts* are stories done only by the survey app team, which has separate capacity. These totals combine both BlackPages teams. With each team running at roughly 20–25 points a sprint, Sprints 1–9 sit at 38–46 combined points. Sprint 10 is intentionally overloaded because it contains only Should items, which can be trimmed or moved after the MVP.
+
+### Team and capacity (decided 2026-10-06)
+- **Team:** 8 developers using Claude Code, each working **about 20 hours a week**. **4 work on UI/UX and frontend**, and **4 on backend and infrastructure**, so each side is about 2 full-time equivalents.
+- **Decision:** keep the **26-week plan and the full scope (option A)**, with **no change to the team or hours**.
+- **Known risk:** about two-thirds of the points are backend work (≈ 371 of 571). At a planning velocity of about 22 points a sprint per side, the backend side can deliver about 290 points in 13 sprints, roughly **80 points short**. The frontend has about 35 points to spare after design work.
+- **Checkpoint:** measure backend and frontend velocity separately at the **end of Sprint 2**, and re-forecast. If the backend is behind:
+  1. **First,** move Should items to just after launch (about 44 backend points: Sprint 10, 2.5, 6.9, 14.6, and 18.13).
+  2. **Then,** let frontend developers take simple backend stories under backend review (about 30 points).
+  3. **Last,** extend the timeline (the full scope with the current team is estimated at about 32–34 weeks).
+
 
 ### Sequencing rationale
 - **Identity and the entitlement engine come first**, because profiles, messaging, analytics, and billing all depend on them.
 - **Payments come before reviews and the secret shopper program**, because both require accounts in good standing.
 - **Tracking starts in Sprint 5**, and consent is live before the paid beta, so real data exists by the time dashboards are built in Sprint 9.
 - **Service-area search comes after the base map**, because it reuses geocoding and map components.
+- **Survey integration:** the survey app's changes (18.18, 18.4, 18.5, 18.6, 18.15) run in Sprints 6–9, in parallel with the integration APIs (18.1–18.3). The survey insights screens follow in Sprint 11, once the APIs exist and the first surveys have been sent.
 
 ---
 
@@ -275,6 +288,7 @@ As the **product owner**, I want Arizona set up as the first active location so 
 | 2.20 | Logout | M | 2 | 2 | svc |
 | 2.21 | Hardened staff authentication flow | S | 3 | 10 | infra |
 | 2.22 | Keycloak in AWS | M | 5 | 0 | infra |
+| 2.23 | In-app notification center | M | 5 | 9 | svc, ui |
 
 #### 2.1 Account registration through Keycloak
 As a **visitor**, I want to create an account so that I can join BlackPages as a shopper or business.
@@ -460,6 +474,19 @@ As the **delivery team**, I want Keycloak deployed in staging and production so 
 - `keycloak-config-cli` applies the realm configuration in the deploy pipeline.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 0 · *Team:* infra
+
+#### 2.23 In-app notification center
+As a **member or staff user**, I want to see what has happened since I last looked, without leaving the site, so that I can act on it straight away.
+
+**Acceptance criteria**
+- **Backend:** the `notification` module writes a `user_notification` row (user, type, title, message, link, created time, read time) for the events listed in System Overview section 8.13, alongside any email it sends.
+- **API:** `GET /api/notifications` (cursor-paginated, with an `unreadOnly` filter and an `unreadCount`), `POST /api/notifications/{notificationId}/read`, and `POST /api/notifications/read-all`. Responses are `private, no-store` and support `ETag`, so polling is cheap (API Style Guide, section 12.1).
+- **UI:** a bell icon in the header with the unread count, and a panel listing notifications that link to the relevant page. TanStack Query refreshes it **every 60 seconds and when the tab regains focus**. Screen readers announce new notifications.
+- Notifications never reveal confidential information: a business is never told who its secret shopper was.
+- Notifications are kept for 90 days. Email notifications continue unchanged.
+- An authorization matrix entry exists for each endpoint: users see only their own notifications.
+
+*Priority:* M · *Points:* 5 · *Sprint:* 9 · *Team:* svc, ui
 
 ---
 
@@ -680,7 +707,7 @@ As a **visitor**, I want to tell BlackPages what I couldn't find and be told whe
 | ID | Story | Pri | Pts | Sprint | Team |
 |---|---|---|---|---|---|
 | 5.1 | Search | M | 8 | 4 | svc, ui |
-| 5.2 | Search autocomplete | S | 3 | 11 | ui, svc |
+| 5.2 | Search autocomplete | S | 3 | 12 | ui, svc |
 | 5.3 | Map view | M | 5 | 6 | ui, svc |
 | 5.5 | Search filters | M | 8 | 4 | svc, ui |
 | 5.7 | Service area | M | 3 | 6 | svc, ui |
@@ -704,7 +731,7 @@ As a **visitor**, I want suggestions as I type so that I can search faster.
 **Acceptance criteria**
 - Suggestions appear after 2 characters and respond in under 300 ms.
 
-*Priority:* S · *Points:* 3 · *Sprint:* 11 · *Team:* ui, svc
+*Priority:* S · *Points:* 3 · *Sprint:* 12 · *Team:* ui, svc
 
 #### 5.3 Map view
 As a **visitor**, I want to see listings on a map so that I can find businesses near me.
@@ -775,7 +802,7 @@ As the **platform**, I want Maps costs controlled so that the bill stays predict
 | 6.8a | Core schema markup | M | 3 | 4 | ui |
 | 6.8b | Schema for reviews, service area, and tier | M | 2 | 8 | ui |
 | 6.9 | Metadata overrides | S | 3 | 10 | svc, ui |
-| 6.12 | Search Console setup | M | 1 | 11 | infra |
+| 6.12 | Search Console setup | M | 1 | 12 | infra |
 
 #### 6.1 Listing URLs
 As a **business**, I want a permanent URL like `/member/acme-plumbing` so that my page can rank in search engines.
@@ -872,7 +899,7 @@ As the **marketing team**, I want Search Console set up so that we can monitor i
 **Acceptance criteria**
 - The domain is verified, and sitemaps are submitted for each location.
 
-*Priority:* M · *Points:* 1 · *Sprint:* 11 · *Team:* infra
+*Priority:* M · *Points:* 1 · *Sprint:* 12 · *Team:* infra
 
 ---
 
@@ -1225,26 +1252,32 @@ As an **admin**, I want to monitor the program and reselect shoppers so that ass
 | ID | Story | Pri | Pts | Sprint | Team |
 |---|---|---|---|---|---|
 | 11.1 | Track user activity | M | 8 | 5 | svc, ui |
-| 11.2 | Event storage and aggregates | M | 5 | 7 | svc |
+| 11.2 | Event storage, partitions, and summary tables | M | 5 | 7 | svc |
 | 11.3 | Cookie consent | M | 3 | 6 | ui |
-| 11.4 | Bot filtering | S | 2 | 11 | svc |
+| 11.4 | Bot filtering | S | 2 | 12 | svc |
+| 11.5 | Internal product analytics with PostHog (optional) | C | 3 | TBD | ui |
 
 #### 11.1 Track user activity
-As the **business team**, I want every search, view, and click recorded so that we understand behavior.
+As the **business team**, I want every search, view, and click recorded so that we understand behavior and can show businesses how their listings perform.
 
 **Acceptance criteria**
-- Events follow the taxonomy from 0.5 and include the location.
-- Anonymous and logged-in sessions are both tracked.
-- Events are written asynchronously so page loads aren't slowed.
+- The web app sends events from the event list (story 0.5) to **`POST /api/public/events`**, batched with `sendBeacon`, only after consent, following the contract in **API Style Guide section 12.2**.
+- The endpoint is **exempt from CSRF checks** and protected instead by a same-site origin check, rate limits, strict validation, and bot filtering (section 12.2.4). It has an `authz-matrix.yaml` entry.
+- The backend records **searches** and **message leads** itself, through the `analytics` module's `ActivityRecorder` (System Overview section 8.14.1).
+- Events are queued and written in batches without slowing requests. Retried events are de-duplicated by `eventId`.
+- Anonymous and signed-in sessions are both tracked. The user ID comes only from the session cookie, and no email, name, or IP address is ever stored.
 
 *Priority:* M · *Points:* 8 · *Sprint:* 5 · *Team:* svc, ui
 
-#### 11.2 Event storage and aggregates
-As the **data team**, I want events stored efficiently so that dashboards are fast.
+#### 11.2 Event storage, partitions, and summary tables
+As the **data team**, I want events stored efficiently and summarized so that dashboards are fast and data is kept only as long as needed.
 
 **Acceptance criteria**
-- `activity_event` is partitioned by month, with a retention policy.
-- Materialized aggregates support the dashboards in E12.
+- `activity_event` is created as designed in **System Overview section 8.14.2**: partitioned by month, with a default partition and the listed indexes.
+- **`ActivityPartitionJob`** (daily, with ShedLock) creates the current and next 2 months' partitions, drops partitions older than the raw retention period only after their summaries are final, and alerts if the next partition is missing (section 8.14.3).
+- The **summary tables** (`activity_daily_listing`, `activity_daily_listing_term`, `activity_daily_search`, `activity_daily_category`, `activity_hourly_platform`) are rebuilt hourly for today and finalized nightly, can be safely rerun, and exclude bots (section 8.14.4).
+- Retention follows section 8.14.5 once confirmed in SPEC-ANL-01 and the privacy policy.
+- Dashboards (E12) read only the summary tables.
 
 *Priority:* M · *Points:* 5 · *Sprint:* 7 · *Team:* svc
 
@@ -1263,7 +1296,19 @@ As the **data team**, I want bot traffic excluded so that metrics are accurate.
 **Acceptance criteria**
 - Known bots are excluded from dashboards.
 
-*Priority:* S · *Points:* 2 · *Sprint:* 11 · *Team:* svc
+*Priority:* S · *Points:* 2 · *Sprint:* 12 · *Team:* svc
+
+#### 11.5 Internal product analytics with PostHog (optional)
+As the **BlackPages team**, I want funnels, session replay, and A/B tests so that we can find where users struggle and improve the site.
+
+**Acceptance criteria**
+- **Optional and unscheduled.** It goes ahead only if the product owner decides it's worth it (ADR-0021).
+- PostHog Cloud is loaded **only after cookie consent**. The same `track()` calls from `features/analytics` are also sent to PostHog, using the event list's names.
+- No emails or names are sent. **Session replay masks all text and form fields.** Automatic event capture is tuned down to stay within the free tier.
+- Funnels are set up for onboarding, checkout, and listing upgrades.
+- PostHog is added to the privacy policy as a data processor (T1). **No number shown to customers comes from PostHog.**
+
+*Priority:* C · *Points:* 3 · *Sprint:* TBD · *Team:* ui
 
 ---
 
@@ -1277,7 +1322,7 @@ As the **data team**, I want bot traffic excluded so that metrics are accurate.
 |---|---|---|---|---|---|
 | 12.1 | Business dashboards by listing tier | M | 8 | 9 | ui, svc |
 | 12.2 | Admin analytics dashboard | M | 5 | 9 | ui, svc |
-| 12.3 | Public charts | S | 5 | 10 | ui, svc |
+| 12.3 | Public charts | S | 5 | 11 | ui, svc |
 | 12.4 | Shopper dashboard | S | 3 | 10 | ui |
 
 #### 12.1 Business dashboards by listing tier
@@ -1304,7 +1349,7 @@ As a **visitor**, I want to see what's popular so that I can discover businesses
 **Acceptance criteria**
 - Charts such as top categories and trending searches use aggregated data only, with no personal information.
 
-*Priority:* S · *Points:* 5 · *Sprint:* 10 · *Team:* ui, svc
+*Priority:* S · *Points:* 5 · *Sprint:* 11 · *Team:* ui, svc
 
 #### 12.4 Shopper dashboard
 As a **shopper**, I want to see my reviews and their status.
@@ -1443,9 +1488,9 @@ As an **admin**, I want bulk actions so that moderation is efficient.
 
 | ID | Story | Pri | Pts | Sprint | Team |
 |---|---|---|---|---|---|
-| 15.1 | Performance budgets | M | 3 | 11 | All |
-| 15.2 | Accessibility audit | M | 3 | 11 | ui |
-| 15.3 | Security testing | M | 5 | 11 | All |
+| 15.1 | Performance budgets | M | 3 | 12 | All |
+| 15.2 | Accessibility audit | M | 3 | 12 | ui |
+| 15.3 | Security testing | M | 5 | 12 | All |
 | 15.4 | Observability | M | 3 | 4 | infra, svc |
 | 15.5 | Privacy compliance | M | 3 | 9 | All |
 
@@ -1456,7 +1501,7 @@ As the **platform**, I want performance checked continuously so that the site st
 - API p95 under 500 ms and search p95 under 300 ms under load tests.
 - Public pages meet LCP under 2.5 s and CLS under 0.1.
 
-*Priority:* M · *Points:* 3 · *Sprint:* 11 · *Team:* All
+*Priority:* M · *Points:* 3 · *Sprint:* 12 · *Team:* All
 
 #### 15.2 Accessibility audit
 As a **user with a disability**, I want the site to be accessible so that I can use it fully.
@@ -1464,7 +1509,7 @@ As a **user with a disability**, I want the site to be accessible so that I can 
 **Acceptance criteria**
 - Automated axe checks run in CI, and a manual WCAG 2.1 AA audit is done before launch.
 
-*Priority:* M · *Points:* 3 · *Sprint:* 11 · *Team:* ui
+*Priority:* M · *Points:* 3 · *Sprint:* 12 · *Team:* ui
 
 #### 15.3 Security testing
 As the **platform**, I want security tested before launch so that members' data is protected.
@@ -1472,7 +1517,7 @@ As the **platform**, I want security tested before launch so that members' data 
 **Acceptance criteria**
 - An OWASP Top 10 review and a penetration test of authentication, payments, and admin are completed, and findings are fixed.
 
-*Priority:* M · *Points:* 5 · *Sprint:* 11 · *Team:* All
+*Priority:* M · *Points:* 5 · *Sprint:* 12 · *Team:* All
 
 #### 15.4 Observability
 As the **operations team**, I want logs, metrics, and alerts so that problems are found quickly.
@@ -1578,6 +1623,202 @@ As a **business**, I want messages counted as leads so that I can see the value 
 
 ---
 
+<a id="e18"></a>
+
+### E18: Survey Insights and Survey App Integration
+
+**Goal:** Connect the separate survey app to BlackPages through APIs (sites are locations), retire the MariaDB sync, and show survey results to businesses, shoppers, the public, and admins (ADR-0022, SPEC-SRV-01). E17 is skipped because its number belonged to the cancelled Keycloak migration epic.
+
+| ID | Story | Pri | Pts | Sprint | Team |
+|---|---|---|---|---|---|
+| 18.1 | Locations integration API | M | 3 | 8 | svc |
+| 18.2 | Survey recipients integration API and consent | M | 5 | 8 | svc, ui |
+| 18.3 | Keycloak clients for the survey integration | M | 2 | 7 | infra, svc, survey |
+| 18.4 | Survey app: sites from BlackPages locations | M | 5 | 7 | survey |
+| 18.5 | Survey app: recipients from BlackPages | M | 5 | 8 | survey |
+| 18.6 | Survey app: integration API | M | 5 | 9 | survey |
+| 18.7 | Survey insights: sync jobs and response copy | M | 5 | 11 | svc |
+| 18.8 | Survey result summaries with privacy rules | M | 5 | 11 | svc |
+| 18.9 | Survey insight entitlements | M | 2 | 11 | svc |
+| 18.10 | Survey insights screen for businesses | M | 5 | 11 | ui, svc |
+| 18.11 | Survey insights screen for shoppers | M | 3 | 11 | ui, svc |
+| 18.12 | Public survey highlights | M | 3 | 11 | ui, svc |
+| 18.13 | Survey analytics for admins | S | 5 | 11 | ui, svc |
+| 18.15 | Survey app: email capacity | M | 3 | 9 | survey |
+| 18.16 | Retire the MariaDB sync | M | 3 | TBD | survey |
+| 18.17 | Survey app admin login through Keycloak | S | 5 | TBD | survey, infra |
+| 18.18 | Survey app platform and link hardening | M | 3 | 6 | survey |
+
+#### 18.1 Locations integration API
+As the **survey app**, I want BlackPages' locations so that each survey site matches a BlackPages location.
+
+**Acceptance criteria**
+- `GET /api/integration/v1/locations?updatedSince=…` returns each location's ID, slug, name, state code, status, time zone, and last update (SPEC-SRV-01, section 6.1).
+- It's protected by a Keycloak bearer token with the `directory.locations.read` scope, through a new bearer-token security filter chain for `/api/integration/**` (ADR-0022).
+- It has an `authz-matrix.yaml` entry, and requests without a valid token or scope get 401 or 403.
+
+*Priority:* M · *Points:* 3 · *Sprint:* 8 · *Team:* svc
+
+#### 18.2 Survey recipients integration API and consent
+As the **survey app**, I want the list of members who agreed to receive surveys, by location, so that surveys reach the right people.
+
+**Acceptance criteria**
+- `GET /api/integration/v1/survey-recipients?locationId=…&updatedSince=…` returns recipients with account type, email, status, consent, and home location. Deleted accounts appear as `DELETED` with no email (section 6.1).
+- **Survey consent** is captured at onboarding and can be withdrawn in account settings (BR-SI-04, pending OQ-S4).
+- `UserDeleted` triggers an outbox handler that calls the survey app's anonymize endpoint, with retries (BR-SI-11).
+- Phone numbers are never shared.
+
+*Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* svc, ui · *Depends on:* OQ-S4
+
+#### 18.3 Keycloak clients for the survey integration
+As the **platform**, I want the two apps to authenticate with each other through Keycloak so that no database credentials or shared secrets are needed.
+
+**Acceptance criteria**
+- Keycloak clients are added for BlackPages (to call the survey app, with `survey.read` and `survey.respondents.anonymize`) and for the survey app (to call BlackPages, with `directory.locations.read` and `directory.recipients.read`). They're defined in the realm configuration and `keycloak-config-cli`.
+- Secrets are kept in Secrets Manager. Both apps validate bearer tokens for `/api/integration/**`.
+- The network path is limited to the two services.
+
+*Priority:* M · *Points:* 2 · *Sprint:* 7 · *Team:* infra, svc, survey
+
+#### 18.4 Survey app: sites from BlackPages locations
+As a **survey admin**, I want each site to match a BlackPages location automatically so that new states are ready for surveys.
+
+**Acceptance criteria**
+- `Site` gains `location_id` (unique) and `time_zone`. `database_url` is removed (SPEC-SRV-01, section 3).
+- A daily location sync creates and updates sites. New sites start with `live = false`, and `live` can be switched on only while the location is ACTIVE.
+- Survey dates are worked out in the site's time zone (BR-SI-06).
+
+*Priority:* M · *Points:* 5 · *Sprint:* 7 · *Team:* survey
+
+#### 18.5 Survey app: recipients from BlackPages
+As a **survey admin**, I want survey recipients to come from BlackPages so that the MariaDB user sync can be retired.
+
+**Acceptance criteria**
+- The recipient sync pulls from BlackPages for each site, at its `user_sync_frequency_minutes`.
+- `directory_user_id` becomes a UUID. `company` and `individual` map to BUSINESS and SHOPPER.
+- Consent and status are honored (`2` means eligible). `DELETED` recipients are anonymized.
+- A recipient whose home location changes moves to the new site, and keeps past submissions where they were given (BR-SI-05).
+
+*Priority:* M · *Points:* 5 · *Sprint:* 8 · *Team:* survey
+
+#### 18.6 Survey app: integration API
+As **BlackPages**, I want to read survey definitions, question snapshots, and responses through a stable API so that survey insights don't depend on the survey app's database.
+
+**Acceptance criteria**
+- `/api/integration/v1/surveys`, `/survey-logs` (with the question snapshot), and `/responses` (cursor-based, ordered by change sequence, including deletions) are provided as in SPEC-SRV-01, section 6.2.
+- `POST /respondents/{recipientId}/anonymize` is provided, and is safe to repeat.
+- It's protected by Keycloak bearer tokens with the listed scopes, and errors use Problem Details.
+
+*Priority:* M · *Points:* 5 · *Sprint:* 9 · *Team:* survey
+
+#### 18.7 Survey insights: sync jobs and response copy
+As the **platform**, I want survey data pulled into BlackPages regularly so that charts are fast and don't depend on the survey app being up.
+
+**Acceptance criteria**
+- New backend module `survey-insights`, with hourly jobs (ShedLock) syncing surveys, survey logs, and question snapshots, and responses from the stored cursor (SPEC-SRV-01, section 7).
+- The response copy is pseudonymous, with city and category recorded at the time of the response. Deletions are applied, and retention is 13 months (section 8).
+- Jobs resume from their cursor after a failure, and alert after 3 failures in a row.
+
+*Priority:* M · *Points:* 5 · *Sprint:* 11 · *Team:* svc
+
+#### 18.8 Survey result summaries with privacy rules
+As the **platform**, I want survey results summarized safely so that no respondent can be identified.
+
+**Acceptance criteria**
+- `survey_result_summary` is built for each survey log × question × group (overall, city, respondent type, category), with counts, shares, medians, and averages.
+- **Groups of fewer than 5 respondents** are stored but marked, and are returned only to admins (BR-SI-07).
+- Free text is never included in public or business results (BR-SI-08). Results use the question wording as sent (BR-SI-10).
+
+*Priority:* M · *Points:* 5 · *Sprint:* 11 · *Team:* svc
+
+#### 18.9 Survey insight entitlements
+As the **platform**, I want survey insights controlled by tier and account type so that detail matches what each member has.
+
+**Acceptance criteria**
+- New keys in SPEC-BILL-01: `listing.survey_insights.level` (Silver BASIC, Gold STANDARD, Platinum ADVANCED) and `account.survey_insights.shopper`.
+- A business's level comes from its highest active listing tier (BR-SI-13, pending OQ-S1).
+- The API enforces it, and locked content returns `ENTITLEMENT_NOT_INCLUDED`.
+
+*Priority:* M · *Points:* 2 · *Sprint:* 11 · *Team:* svc · *Depends on:* OQ-S1
+
+#### 18.10 Survey insights screen for businesses
+As a **business owner**, I want to see survey results relevant to my business so that I understand my market and customers.
+
+**Acceptance criteria**
+- Screen S50: the list of surveys, with results charted by question type (scale, multiple choice, yes/no) as in SPEC-SRV-01, section 5.
+- Tabs for city, respondent type, and category, plus trends and CSV export, according to level. Locked tabs show the tier that includes them.
+- "Not enough responses yet", empty, error, and loading states are included, and the screen meets WCAG 2.1 AA (charts have text alternatives).
+
+*Priority:* M · *Points:* 5 · *Sprint:* 11 · *Team:* ui, svc · *Depends on:* OQ-S2
+
+#### 18.11 Survey insights screen for shoppers
+As a **shopper**, I want to see the results of surveys I answered so that I know how my views compare.
+
+**Acceptance criteria**
+- Screen S51: the surveys the shopper answered, with overall results and "your answer compared with the community" (shown only to them).
+- No breakdown by business or category. The minimum group size applies.
+
+*Priority:* M · *Points:* 3 · *Sprint:* 11 · *Team:* ui, svc
+
+#### 18.12 Public survey highlights
+As a **visitor**, I want to see what people in my state think so that I trust the community behind BlackPages.
+
+**Acceptance criteria**
+- Screen S52: location-level charts for the questions admins mark public, on each state's directory pages and at `/insights/{locationSlug}`.
+- Totals only, using the minimum group size (k = 5). No free text. Server-rendered and cacheable.
+
+*Priority:* M · *Points:* 3 · *Sprint:* 11 · *Team:* ui, svc
+
+#### 18.13 Survey analytics for admins
+As an **admin or site operator**, I want full survey analytics so that I can run the survey program well.
+
+**Acceptance criteria**
+- Screen S53: response rates by survey log, all groups including small ones (marked), and free text (with moderation if OQ-S2 allows it).
+- Admins choose which questions are public. The screen shows sync health and the parallel-run comparison with MariaDB.
+- Limited to the user's location scope (BR-SI-12).
+
+*Priority:* S · *Points:* 5 · *Sprint:* 11 · *Team:* ui, svc
+
+#### 18.15 Survey app: email capacity
+As a **survey admin**, I want surveys delivered within a day so that response rates stay healthy.
+
+**Acceptance criteria**
+- The 85-emails-a-day limit (Mailgun free tier) is replaced, by a paid Mailgun plan or by Postmark (ADR-0015), so that a survey to all of a location's recipients goes out within 24 hours.
+- Bounces and complaints are handled, and the from-address and domain match BlackPages' email setup (SPF, DKIM).
+
+*Priority:* M · *Points:* 3 · *Sprint:* 9 · *Team:* survey
+
+#### 18.16 Retire the MariaDB sync
+As the **platform**, I want the Brilliant Directories sync retired safely so that no survey data is lost.
+
+**Acceptance criteria**
+- A parallel run, with a daily comparison of submission counts by survey log, has shown no differences for at least 2 survey cycles (SPEC-SRV-01, section 10).
+- `active_sync` is switched off, and the MariaDB jobs are disabled, when Brilliant Directories closes.
+- The MariaDB code, the `database_url` column, and the MariaDB direction of the sync log are removed.
+
+*Priority:* M · *Points:* 3 · *Sprint:* TBD · *Team:* survey
+
+#### 18.17 Survey app admin login through Keycloak
+As a **survey admin**, I want to sign in with my BlackPages staff account so that there's one login with MFA.
+
+**Acceptance criteria**
+- The survey app's admin UI signs in through Keycloak (the staff role and MFA, ADR-0005). Its own JWTs and the `localStorage` tokens are retired.
+- Admin roles map to Keycloak roles. Password reset is handled by Keycloak.
+
+*Priority:* S · *Points:* 5 · *Sprint:* TBD · *Team:* survey, infra
+
+#### 18.18 Survey app platform and link hardening
+As the **platform**, I want the survey app on the same platform and security standard as BlackPages so that it's maintainable and safe.
+
+**Acceptance criteria**
+- Upgraded to Spring Boot 4.1 with the Boot 4 modular starters (ADR-0018).
+- Survey link tokens are **stored hashed**, have an **expiry date**, and are kept out of logs and referrer headers.
+- Responses use Problem Details (RFC 9457).
+
+*Priority:* M · *Points:* 3 · *Sprint:* 6 · *Team:* survey
+
+---
+
 ## 5. Post-MVP backlog
 
 | ID | Item | Notes |
@@ -1595,6 +1836,8 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | P.9 | Redis/Valkey caching | When a second backend task is added (ADR-0010). |
 | P.10 | Expansion to new locations | Each new state is configuration plus data seeding, following the pattern of story 1.5. |
 | P.11 | Multiple users per business account | Team invites and an EDITOR role (formerly story 2.7). Adds `account.team_members.max` back to the entitlement catalogue. |
+| P.12 | Real-time push for notifications | Server-Sent Events from `GET /api/notifications/stream`, reading the same `user_notification` table, with Postgres LISTEN/NOTIFY or Valkey to reach every API task (ADR-0020). Polling stays as the fallback. |
+| P.13 | Notification preferences | Let members choose which notifications they get in the app and by email. |
 
 ---
 
@@ -1608,6 +1851,11 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | 3.3 | Branch locations (add-ons billed on the account's plan) | **Rewritten (v1.1)** as "Add more listings" | Any number of listings, each with its own tier |
 | 7.1, 7.3, 7.4, 7.5, 7.7, 7.10, 7.11 | Plan configuration, plan signup, plan changes, add-on billing, lapsed subscriptions, plan entitlements, plans discounted to $0 | **Rewritten (v1.1)** | Now cover listing tiers, account pricing, per-listing tier changes, one invoice per account, and per-listing and per-account entitlements |
 | 2.2, 3.2, 3.9, 4.7, 6.8b, 9.1, 10.1, 10.3, 12.1, 12.2, 13.3, 14.3, 16.6 | Various | **Updated (v1.1)** | Wording changed from plans to listing tiers and account types |
+| E18 (18.1–18.18) | Survey insights and survey app integration | **Added (v1.9)**: 17 stories, 38 BlackPages points and 29 survey app points | ADR-0022, SPEC-SRV-01. Story 18.14 isn't used: moderating free text is part of 18.13. |
+| 11.4, 5.2, 6.12, 15.1–15.3, 12.3 | Hardening, and public charts | **Moved (v1.9)**: hardening from Sprint 11 to 12; 12.3 from Sprint 10 to 11 | Make room for survey insights in Sprint 11, next to the public survey charts |
+| 11.5 | Internal product analytics with PostHog (optional) | **Added (v1.8)**, Could, 3 points, **unscheduled** | Only if the product owner decides to adopt PostHog for internal analytics (ADR-0021) |
+| 11.1, 11.2 | Activity tracking and storage | **Updated (v1.8)** | Endpoint contract and CSRF exemption (API Style Guide 12.2), table design, partition job, and summary tables (System Overview 8.14) |
+| 2.23 | In-app notification center | **Added (v1.7)**, Must, 5 points, Sprint 9 | Sprint 9 comes after every event it reports on exists (approvals, messages, reviews, secret shopper, billing). See ADR-0020. |
 | 1.2, 1.5, 3.9, 4.4, 5.3, 5.7, 7.6, 7.13, 10.1, 10.3, 10.5 | Various | **Updated (v1.6)** | Answers to Q1–Q15: launch cities, photo limits, Silver not on the landing page, map rules, service area as a list of cities (5.7 reduced from 5 to 3 points), annual fee during $0 offers, city tax (7.13 now a Must in Sprint 5, 8 points), secret shopper rebates and B2B rules |
 | 4.8 | Category requests and "notify me when found" | **Added (v1.6)**, Should, Sprint 10 | From the answer to Q4 |
 | 0.2, 0.3 | Repository scaffolding, CI pipelines | **Updated (v1.5)** | Backend on Spring Boot 4.1 and Java 25. New story 0.7 checks library compatibility. |
@@ -1640,6 +1888,9 @@ As a **business**, I want messages counted as leads so that I can see the value 
 | Q14 | Staff MFA: default conditional OTP with reconciliation, or a custom flow keyed on the staff role? | 2.21 | Before Sprint 10 |
 | Q15 | **Answered:** 11 launch cities (Phoenix, Tucson, Mesa, Glendale, Scottsdale, Tempe, Goodyear, Gilbert, Chandler, Peoria, Surprise). No special handling for tribal-land time zones. | — | — |
 | Q18 | Secret shopper selection: 1 in 100 business **accounts** (proposed, so multi-listing accounts aren't favored) or 1 in 100 **listings** (the original brief's wording)? | 10.1 | Before Sprint 8 |
+| OQ-S1 | Survey insights level for businesses with listings on several tiers (proposed: the highest active tier). | 18.9 | Before Sprint 11 |
+| OQ-S2 | Do businesses ever see free-text survey answers? (Proposed: no, for the MVP.) | 18.10 | Before Sprint 11 |
+| OQ-S4 | Survey consent at onboarding, with an opt-out, covered in the privacy policy and terms. | 18.2 | Before Sprint 8 |
 | OQ-3 | Tier prices and the shopper account price (SPEC-BILL-01). | 7.1 | Before Sprint 5 |
 | OQ-6 | Does a person with both account types pay two service fees? (Proposed: yes.) | 7.6 | Before Sprint 5 |
 | T8 | Tax approach: configured city and state rates, or Stripe Tax (decide before Sprint 5). | 7.13 | Before Sprint 5 |

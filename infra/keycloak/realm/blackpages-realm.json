@@ -3,7 +3,6 @@
   "displayName": "BlackPages",
   "enabled": true,
   "sslRequired": "external",
-
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "loginWithEmailAllowed": true,
@@ -12,32 +11,26 @@
   "verifyEmail": true,
   "resetPasswordAllowed": true,
   "rememberMe": true,
-
   "passwordPolicy": "length(12) and maxLength(128) and notEmail and notUsername and passwordHistory(3)",
-
   "bruteForceProtected": true,
   "permanentLockout": false,
   "failureFactor": 10,
   "waitIncrementSeconds": 60,
   "maxFailureWaitSeconds": 900,
   "maxDeltaTimeSeconds": 43200,
-
   "otpPolicyType": "totp",
   "otpPolicyAlgorithm": "HmacSHA1",
   "otpPolicyDigits": 6,
   "otpPolicyPeriod": 30,
-
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 86400,
   "ssoSessionMaxLifespan": 2592000,
   "ssoSessionIdleTimeoutRememberMe": 2592000,
   "ssoSessionMaxLifespanRememberMe": 2592000,
-
   "eventsEnabled": true,
   "eventsExpiration": 7776000,
   "adminEventsEnabled": true,
   "adminEventsDetailsEnabled": false,
-
   "smtpServer": {
     "host": "${SMTP_HOST}",
     "port": "${SMTP_PORT}",
@@ -47,16 +40,36 @@
     "ssl": "false",
     "starttls": "false"
   },
-
   "roles": {
     "realm": [
       {
         "name": "staff",
         "description": "Assigned by the BlackPages app to ADMIN or SITE_OPERATOR users. Used only for MFA policy. Not used for authorization (ADR-0007)."
       }
-    ]
+    ],
+    "client": {
+      "survey-app-svc": [
+        {
+          "name": "survey.read",
+          "description": "Read surveys, survey logs, question snapshots, and responses (ADR-0022)"
+        },
+        {
+          "name": "survey.respondents.anonymize",
+          "description": "Ask the survey app to anonymize a deleted account's responses"
+        }
+      ],
+      "blackpages-integration-api": [
+        {
+          "name": "directory.locations.read",
+          "description": "Read BlackPages locations"
+        },
+        {
+          "name": "directory.recipients.read",
+          "description": "Read survey recipients by location"
+        }
+      ]
+    }
   },
-
   "clients": [
     {
       "clientId": "blackpages-bff",
@@ -95,16 +108,79 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "blackpages-integration-api",
+      "name": "BlackPages integration API (resource server for /api/integration/**)",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "secret": "${INTEGRATION_API_CLIENT_SECRET}"
+    },
+    {
+      "clientId": "survey-app-svc",
+      "name": "Survey app (resource server, and caller of the BlackPages integration API)",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${SURVEY_APP_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "blackpages-survey-reader",
+      "name": "BlackPages backend, calling the survey app integration API",
+      "protocol": "openid-connect",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${SURVEY_READER_CLIENT_SECRET}",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true
     }
   ],
-
   "users": [
     {
       "username": "service-account-blackpages-admin-api",
       "enabled": true,
       "serviceAccountClientId": "blackpages-admin-api",
       "clientRoles": {
-        "realm-management": ["manage-users", "view-users", "query-users"]
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "query-users"
+        ]
+      }
+    },
+    {
+      "username": "service-account-survey-app-svc",
+      "enabled": true,
+      "serviceAccountClientId": "survey-app-svc",
+      "clientRoles": {
+        "blackpages-integration-api": [
+          "directory.locations.read",
+          "directory.recipients.read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-blackpages-survey-reader",
+      "enabled": true,
+      "serviceAccountClientId": "blackpages-survey-reader",
+      "clientRoles": {
+        "survey-app-svc": [
+          "survey.read",
+          "survey.respondents.anonymize"
+        ]
       }
     }
   ]

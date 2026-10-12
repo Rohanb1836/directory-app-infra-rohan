@@ -6,7 +6,7 @@ ADRs use a lightweight version of the Nygard format: Status, Context, Decision, 
 
 | ADR | Title | Status | Changed in this revision |
 |---|---|---|---|
-| [0001](0001-backend-modular-monolith.md) | Backend is a Spring Boot modular monolith | Accepted (amended) | `entitlement` module added (15 modules). Platform versions superseded by ADR-0018. |
+| [0001](0001-backend-modular-monolith.md) | Backend is a Spring Boot modular monolith | Accepted (amended) | `entitlement` and `survey-insights` modules added (16 modules). Platform versions superseded by ADR-0018. |
 | [0002](0002-frontend-nextjs.md) | Frontend is one Next.js app with route groups | Accepted | Added Keycloakify theme ownership |
 | [0003](0003-database-postgresql-postgis.md) | PostgreSQL 16 with PostGIS, using Flyway | Accepted (amended) | Added a separate `keycloak` database |
 | [0004](0004-search-postgres.md) | Search uses Postgres full-text search behind a SearchPort | Accepted | — |
@@ -16,7 +16,7 @@ ADRs use a lightweight version of the Nygard format: Status, Context, Decision, 
 | [0008](0008-location-scoping.md) | Location scoping | Accepted | — |
 | [0009](0009-payments-stripe.md) | Payments use Stripe Billing | **Accepted** (2026-10-06) | Billing items follow ADR-0017 |
 | [0010](0010-async-processing-and-scheduling.md) | Outbox, ShedLock on Postgres, no Redis in the MVP | Accepted | Redis removed; reconciliation job added |
-| [0011](0011-analytics-events.md) | Analytics events in a partitioned table | Accepted | Clarified that Keycloak events stay in Keycloak |
+| [0011](0011-analytics-events.md) | Analytics events in a partitioned table | Accepted (details added) | Clarified that Keycloak events stay in Keycloak |
 | [0012](0012-api-contract-first.md) | API designed contract-first, with a published client | Accepted | Supersedes the code-first approach |
 | [0013](0013-repository-structure.md) | Separate repositories: `directory-app-svc`, `directory-app-ui`, `directory-app-infra` | Accepted | **New**; repositories renamed |
 | [0014](0014-hosting-aws.md) | Hosting on AWS with ECS Fargate | Proposed | Keycloak service and updated costs |
@@ -25,6 +25,9 @@ ADRs use a lightweight version of the Nygard format: Status, Context, Decision, 
 | [0017](0017-account-types-and-listing-tiers.md) | **Two account types, with tiers on each listing** | Accepted | **New (2026-09-30).** Supersedes the account-plan model. Clarified the same day: the default Silver listing is charged like any other |
 | [0018](0018-backend-platform-spring-boot-4-java-25.md) | **Backend platform: Spring Boot 4.1 on Java 25** | Accepted | **New (2026-09-30).** Supersedes the platform versions in ADR-0001 |
 | [0019](0019-frontend-platform-nextjs-16.md) | **Frontend platform: Next.js 16.3, React 19, and Node.js 24 LTS** | Accepted | **New (2026-09-30)** |
+| [0020](0020-backend-to-ui-communication.md) | **How backend events reach the UI: no live push in the MVP, plus an in-app notification center** | Accepted | **New (2026-10-06)** |
+| [0021](0021-analytics-own-pipeline-posthog-optional.md) | **Our own pipeline for product analytics; PostHog optional, for internal use only** | Accepted | **New (2026-10-06)** |
+| [0022](0022-survey-app-integration.md) | **Survey app integration: insights built in BlackPages, data pulled through APIs, sites are locations** | Accepted | **New (2026-10-06)** |
 
 ## Wording amendments
 

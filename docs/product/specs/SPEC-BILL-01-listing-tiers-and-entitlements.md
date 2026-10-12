@@ -5,12 +5,13 @@
 | | |
 |---|---|
 | **Spec ID** | SPEC-BILL-01 |
-| **Version** | 0.6 (draft) |
+| **Version** | 0.7 (draft) |
 | **Date** | 2026-10-06 |
 | **Status** | Draft for review. It needs product owner approval **before Sprint 1 refinement ends**, because the entitlement engine (7.10) starts in Sprint 2. |
 | **Change from v0.1** | Silver, Gold, and Platinum are no longer account plans. They are **tiers of an individual listing**. There are two **account types**, business and shopper. A business account can add any number of listings, each with its own tier, and **gets one Silver listing by default**. |
 | **Change from v0.2** | The **default Silver listing is charged the Silver price and discounted like any other listing**. There's no longer a free allowance. The account owner can **upgrade or downgrade every listing**, including the default one. |
 | **Change from v0.3** | **Only the account owner can change tiers**, and **each business account has exactly one user, its owner**, for now. The team-member entitlement and editor role are removed. |
+| **Change from v0.6** | New keys for survey insights: `listing.survey_insights.level` and `account.survey_insights.shopper` (SPEC-SRV-01, ADR-0022) |
 | **Change from v0.5** | Answers to Q2 and Q6 (2026-09-30): gallery photos are **Silver 1, Gold 3, Platinum 6**, and **Silver listings aren't featured on the directory landing page** (new key `listing.landing_page`). |
 | **Change from v0.4** | The **shopper account always has a price**. Discounts apply to it, and the $1 service fee is charged in addition. |
 | **Owner** | Product owner |
@@ -120,6 +121,8 @@ Each key gets its value from one of two sources:
 | `listing.messaging.receive` | Yes/no | Listing tier | Read (Contact button), write (accepting messages) | 16.1, 16.6 |
 | `listing.analytics.level` | Choice: BASIC, STANDARD, ADVANCED | Listing tier | Read (that listing's dashboard widgets and API fields) | 12.1 |
 | `listing.analytics.history_days` | Number | Listing tier | Read (that listing's date range limit) | 12.1 |
+| `listing.survey_insights.level` | Choice: BASIC, STANDARD, ADVANCED | Listing tier. **The account uses its highest active listing** (SPEC-SRV-01, BR-SI-13). | Read (survey insights breakdowns, trends, export) | 18.9, 18.10 |
+| `account.survey_insights.shopper` | Yes/no | Account type (shopper) | Read (shopper survey insights) | 18.11 |
 | `account.listings.max` | Number, or no limit | Account type (business) | Write (creating a listing) | 3.3 |
 | `account.reviews.respond` | Yes/no | Account type (business) | Write (replying to reviews of the account's listings) | 9.5 |
 | `account.reviews.write` | Yes/no | Account type (both) | Write (creating a review) | 9.1 |
@@ -149,6 +152,7 @@ Values marked *indicative* are proposals waiting on MVP question Q6 (see OQ-2).
 | `listing.messaging.receive` | Yes | Yes | Yes |
 | `listing.analytics.level` | BASIC | STANDARD | ADVANCED |
 | `listing.analytics.history_days` *(indicative)* | 90 | 365 | 730 |
+| `listing.survey_insights.level` | BASIC | STANDARD | ADVANCED |
 
 ### 4.3 Default values by account type
 
@@ -160,6 +164,7 @@ Values marked *indicative* are proposals waiting on MVP question Q6 (see OQ-2).
 | `account.secret_shopper.eligible` | Yes | Yes |
 | `account.messaging.history` | — | Yes |
 | `account.dashboard.shopper` | — | Yes |
+| `account.survey_insights.shopper` | — | Yes |
 
 \* *"No limit" still has a system-wide safety cap of 100 listings per account, which admins can raise for an individual account.*
 

@@ -1,6 +1,6 @@
 # ADR-0011: Analytics events are stored in an append-only, partitioned table
 
-- **Status:** Accepted
+- **Status:** Accepted (2026-10-06: the detailed design is in System Overview section 8.14 and API Style Guide section 12.2. Tooling is decided in ADR-0021.)
 - **Date:** 2026-09-27
 
 ## Decision
