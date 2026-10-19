@@ -1,0 +1,39 @@
+name: Staging infrastructure
+on:
+  pull_request:
+    paths: ["infra/terraform/**", ".github/workflows/staging.yml"]
+  push:
+    branches: [main]
+    paths: ["infra/terraform/**", ".github/workflows/staging.yml"]
+permissions: { contents: read, id-token: write }
+env: { TF_IN_AUTOMATION: "true", TF_WORKING_DIR: infra/terraform, AWS_REGION: "${{ vars.AWS_REGION || 'us-west-2' }}" }
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: "${{ env.TF_WORKING_DIR }}" } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8" }
+      - run: terraform fmt -check -recursive
+      - run: terraform init -input=false
+      - run: terraform validate
+      - if: "${{ vars.AWS_DEPLOY_ROLE_ARN != '' }}"
+        uses: aws-actions/configure-aws-credentials@v4
+        with: { role-to-assume: "${{ vars.AWS_DEPLOY_ROLE_ARN }}", aws-region: "${{ env.AWS_REGION }}" }
+      - if: "${{ vars.AWS_DEPLOY_ROLE_ARN != '' }}"
+        run: terraform plan -input=false
+  apply:
+    needs: plan
+    if: "${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.AWS_DEPLOY_ROLE_ARN != '' }}"
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults: { run: { working-directory: "${{ env.TF_WORKING_DIR }}" } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8" }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with: { role-to-assume: "${{ vars.AWS_DEPLOY_ROLE_ARN }}", aws-region: "${{ env.AWS_REGION }}" }
+      - run: terraform init -input=false
+      - run: terraform apply -auto-approve -input=false
